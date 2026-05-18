@@ -319,71 +319,76 @@
 <div id="addGovModal" class="modal"><div class="modal-content"><h3>➕ Добавить госструктуру</h3><input type="text" id="newGovName" placeholder="Название структуры"><input type="text" id="newGovLeader" placeholder="Имя лидера"><button id="confirmAddGov" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
 
 <script>
-    // ========== НАСТРОЙКИ СИНХРОНИЗАЦИИ ==========
-    // ⚠️ ЗАМЕНИТЕ ЭТУ ССЫЛКУ НА ВАШУ ИЗ GOOGLE APPS SCRIPT! ⚠️
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqEOD6gEPsL4C2TJ9qyRjrpxHhbgJAfe_7BvTjwLvD6QsS7_d5X3DdsaXTNF2qTsIlGw/exec";
+    // ========== ⚠️ ЗАМЕНИТЕ ЭТУ ССЫЛКУ НА ВАШУ ИЗ GOOGLE APPS SCRIPT! ==========
+    const SCRIPT_URL = "https://script.google.com/macros/s/ВАШ_ИДЕНТИФИКАТОР/exec";
     
-    let syncTimer = null;
     let isSyncing = false;
-    let pendingSync = false;
-    let lastSyncVersion = 0;
+    let syncTimer = null;
 
     async function syncWithCloud() {
-        if (isSyncing) { pendingSync = true; return; }
+        if (isSyncing) return;
         isSyncing = true;
-        document.getElementById("syncStatus").className = "sync-status syncing";
-        document.getElementById("syncStatus").innerHTML = "🔄 Синхронизация...";
+        const statusDiv = document.getElementById("syncStatus");
+        statusDiv.className = "sync-status syncing";
+        statusDiv.innerHTML = "🔄 Синхронизация...";
         
         try {
-            // Загрузка данных из облака
-            const loadResponse = await fetch(`${SCRIPT_URL}?action=load&t=${Date.now()}`);
-            const loadResult = await loadResponse.json();
+            // Пробуем загрузить данные из облака
+            const response = await fetch(`${SCRIPT_URL}?action=load&t=${Date.now()}`, {
+                method: 'GET',
+                mode: 'cors'
+            });
             
-            if (loadResult.status === "ok" && loadResult.data) {
-                const cloudData = loadResult.data;
-                
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            
+            if (result.status === "ok" && result.data) {
                 // Обновляем локальные данные
-                if (cloudData.priceItems) priceItems = cloudData.priceItems;
-                if (cloudData.factions) factions = cloudData.factions;
-                if (cloudData.stats) stats = cloudData.stats;
-                if (cloudData.hoursData) hoursData = cloudData.hoursData;
-                if (cloudData.reasonsData) reasonsData = cloudData.reasonsData;
-                if (cloudData.users) users = cloudData.users;
-                if (cloudData.hourNorm) hourNorm = cloudData.hourNorm;
-                if (cloudData.lastChangeTimestamp) lastChangeTimestamp = cloudData.lastChangeTimestamp;
-                if (cloudData.ratingChangeLogs) ratingChangeLogs = cloudData.ratingChangeLogs;
-                if (cloudData.fullAuditLogs) fullAuditLogs = cloudData.fullAuditLogs;
-                if (cloudData.userRegDate) userRegDate = cloudData.userRegDate;
-                
-                // Восстановление сессии
-                let ses = localStorage.getItem("ural_session");
-                if(ses) { let sess = JSON.parse(ses);
-                    if(sess.type === "admin") currentUser = { type: "admin" };
-                    else if(sess.type === "leader" && users[sess.login]) currentUser = { type: "leader", login: sess.login, factionIndex: users[sess.login].factionIndex };
-                }
+                if (result.data.priceItems) priceItems = result.data.priceItems;
+                if (result.data.factions) factions = result.data.factions;
+                if (result.data.stats) stats = result.data.stats;
+                if (result.data.hoursData) hoursData = result.data.hoursData;
+                if (result.data.reasonsData) reasonsData = result.data.reasonsData;
+                if (result.data.users) users = result.data.users;
+                if (result.data.hourNorm) hourNorm = result.data.hourNorm;
+                if (result.data.lastChangeTimestamp) lastChangeTimestamp = result.data.lastChangeTimestamp;
+                if (result.data.ratingChangeLogs) ratingChangeLogs = result.data.ratingChangeLogs;
+                if (result.data.fullAuditLogs) fullAuditLogs = result.data.fullAuditLogs;
+                if (result.data.userRegDate) userRegDate = result.data.userRegDate;
                 
                 // Сохраняем в localStorage
                 saveAllToLocal();
                 
-                document.getElementById("syncStatus").className = "sync-status synced";
-                document.getElementById("syncStatus").innerHTML = "✅ Синхронизировано";
+                // Восстанавливаем сессию
+                const ses = localStorage.getItem("ural_session");
+                if (ses) {
+                    const sess = JSON.parse(ses);
+                    if (sess.type === "admin") currentUser = { type: "admin" };
+                    else if (sess.type === "leader" && users[sess.login]) {
+                        currentUser = { type: "leader", login: sess.login, factionIndex: users[sess.login].factionIndex };
+                    }
+                }
+                
+                statusDiv.className = "sync-status synced";
+                statusDiv.innerHTML = "✅ Синхронизировано";
                 updateUI();
+            } else {
+                throw new Error("Нет данных");
             }
         } catch(e) {
             console.error("Sync error:", e);
-            document.getElementById("syncStatus").className = "sync-status error";
-            document.getElementById("syncStatus").innerHTML = "⚠️ Ошибка соединения";
+            statusDiv.className = "sync-status error";
+            statusDiv.innerHTML = "⚠️ Офлайн режим";
+            // Пытаемся загрузить из localStorage
+            loadLocalData();
+            updateUI();
         }
         
         isSyncing = false;
-        if (pendingSync) { pendingSync = false; syncWithCloud(); }
     }
 
     async function saveToCloud() {
-        if (isSyncing) { pendingSync = true; return; }
-        isSyncing = true;
-        document.getElementById("syncStatus").className = "sync-status syncing";
-        document.getElementById("syncStatus").innerHTML = "🔄 Сохранение...";
+        const statusDiv = document.getElementById("syncStatus");
         
         const dataToSave = {
             version: Date.now(),
@@ -401,18 +406,19 @@
         };
         
         try {
-            await fetch(`${SCRIPT_URL}?action=save&value=${encodeURIComponent(JSON.stringify(dataToSave))}`);
+            await fetch(`${SCRIPT_URL}?action=save&value=${encodeURIComponent(JSON.stringify(dataToSave))}`, {
+                method: 'GET',
+                mode: 'cors'
+            });
             saveAllToLocal();
-            document.getElementById("syncStatus").className = "sync-status synced";
-            document.getElementById("syncStatus").innerHTML = "✅ Сохранено";
+            statusDiv.className = "sync-status synced";
+            statusDiv.innerHTML = "✅ Сохранено";
         } catch(e) {
             console.error("Save error:", e);
-            document.getElementById("syncStatus").className = "sync-status error";
-            document.getElementById("syncStatus").innerHTML = "⚠️ Ошибка сохранения";
+            statusDiv.className = "sync-status error";
+            statusDiv.innerHTML = "⚠️ Ошибка сохранения";
+            saveAllToLocal();
         }
-        
-        isSyncing = false;
-        if (pendingSync) { pendingSync = false; saveToCloud(); }
     }
 
     function saveAllToLocal() {
@@ -489,11 +495,6 @@
             let rcl = localStorage.getItem("ural_rating_logs"); if(rcl) ratingChangeLogs = JSON.parse(rcl);
             let fal = localStorage.getItem("ural_full_logs"); if(fal) fullAuditLogs = JSON.parse(fal);
             let urd = localStorage.getItem("ural_user_regdate"); if(urd) userRegDate = JSON.parse(urd);
-            let ses = localStorage.getItem("ural_session");
-            if(ses) { let sess = JSON.parse(ses);
-                if(sess.type === "admin") currentUser = { type: "admin" };
-                else if(sess.type === "leader" && users[sess.login]) currentUser = { type: "leader", login: sess.login, factionIndex: users[sess.login].factionIndex };
-            }
         } catch(e) {}
         for(let i=0;i<factions.length;i++) {
             if(!stats[i]) stats[i] = {};
@@ -816,8 +817,8 @@
     initModals();
     updateUI();
     
-    // Автосинхронизация каждые 15 секунд
-    setInterval(() => { syncWithCloud(); }, 15000);
+    // Автосинхронизация каждые 30 секунд
+    setInterval(() => { syncWithCloud(); }, 30000);
     // Первая синхронизация через 2 секунды
     setTimeout(() => { syncWithCloud(); }, 2000);
 </script>
