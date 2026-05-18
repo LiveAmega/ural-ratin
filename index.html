@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Уральск Онлайн | Firebase FINAL</title>
+<title>Уральск Онлайн | Firebase PRO UPGRADE</title>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -16,71 +15,86 @@
   --card:#151b28;
   --text:#fff;
   --accent:#d7a85d;
-  --green:#3ddc97;
   --red:#ff5c5c;
+  --green:#3ddc97;
   --muted:#8c98aa;
 }
 *{box-sizing:border-box;font-family:Arial}
 body{margin:0;background:var(--bg);color:var(--text);padding:20px}
 .container{max-width:1400px;margin:auto}
 .card{background:var(--card);padding:16px;border-radius:14px;margin-bottom:14px}
-button{cursor:pointer;border:0;padding:8px 12px;border-radius:10px}
-input,select,textarea{padding:8px;border-radius:8px;border:1px solid #222;background:#0e1320;color:#fff}
+button{cursor:pointer;border:0;padding:8px 12px;border-radius:10px;margin:3px}
+input{padding:8px;border-radius:8px;border:1px solid #222;background:#0e1320;color:#fff;width:100%;margin:3px 0}
 .hidden{display:none}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .nav button{margin-right:6px}
 .primary{background:var(--accent)}
 .danger{background:var(--red)}
-.success{background:var(--green)}
+.green{background:var(--green)}
 .table{width:100%;border-collapse:collapse}
 .table td,.table th{border-bottom:1px solid #222;padding:8px}
-.total{color:var(--accent);font-weight:bold}
+.small{color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
 
 <div class="container">
 
-<div class="topbar card">
-  <h2>⚡ Уральск Онлайн (Firebase FINAL)</h2>
-  <div id="userBox"></div>
-  <button onclick="logout()" class="danger hidden" id="logoutBtn">Выйти</button>
+<div class="card">
+<h2>⚡ Уральск Онлайн (PRO UPGRADE Firebase)</h2>
+<div id="userBox"></div>
+<button id="logoutBtn" class="danger hidden" onclick="logout()">Выйти</button>
 </div>
 
-<!-- AUTH -->
-<div id="authCard" class="card">
-<h3>Вход / Регистрация</h3>
-<input id="email" placeholder="Email"/>
-<input id="pass" type="password" placeholder="Пароль"/>
+<div id="auth" class="card">
+<h3>Вход</h3>
+<input id="email" placeholder="Email" />
+<input id="pass" type="password" placeholder="Пароль" />
 <button class="primary" onclick="login()">Войти</button>
 <button onclick="register()">Регистрация</button>
 </div>
 
-<!-- APP -->
 <div id="app" class="hidden">
 
 <div class="card nav">
 <button onclick="show('rating')">📊 Рейтинг</button>
-<button onclick="show('hours')">⏱️ Часы</button>
+<button onclick="show('hours')">⏱ Часы</button>
+<button onclick="show('reasons')">🧾 Причины</button>
+<button onclick="show('logs')">📜 Логи</button>
 <button onclick="show('admin')" id="adminTab" class="hidden">👑 Админ</button>
 </div>
 
-<!-- RATING -->
 <div id="rating" class="card">
 <h3>Рейтинг фракций</h3>
+<input id="factionName" placeholder="Фракция" />
+<input id="factionPoints" placeholder="Баллы" />
+<button class="green" onclick="setRating()">Обновить рейтинг</button>
 <table class="table" id="ratingTable"></table>
 </div>
 
-<!-- HOURS -->
 <div id="hours" class="card hidden">
-<h3>Часы лидеров</h3>
-<div id="hoursBox"></div>
+<h3>Лидерские часы</h3>
+<input id="hourFaction" placeholder="Фракция" />
+<input id="hourValue" placeholder="Часы (+/-)" />
+<button class="green" onclick="updateHours()">Изменить часы</button>
+<table class="table" id="hoursTable"></table>
 </div>
 
-<!-- ADMIN -->
+<div id="reasons" class="card hidden">
+<h3>Причины</h3>
+<input id="reasonUser" placeholder="Игрок" />
+<input id="reasonText" placeholder="Причина" />
+<button class="green" onclick="addReason()">Добавить</button>
+<table class="table" id="reasonsTable"></table>
+</div>
+
+<div id="logs" class="card hidden">
+<h3>Логи действий</h3>
+<pre id="logsBox"></pre>
+</div>
+
 <div id="admin" class="card hidden">
-<h3>Админ панель</h3>
-<pre id="adminData"></pre>
+<h3>Админ панель (RAW)</h3>
+<pre id="adminBox"></pre>
 </div>
 
 </div>
@@ -88,9 +102,8 @@ input,select,textarea{padding:8px;border-radius:8px;border:1px solid #222;backgr
 
 <script>
 
-// ================= FIREBASE =================
 const firebaseConfig = {
-  apiKey: "AIzaSyDz3tFFVILAnAP3u_fFnxejFoDIuLDoQP4",
+  apiKey: "AIzaSyDz3tFFVILAnAP3u_FFnxejFoDIuLDoQP4",
   authDomain: "uralskonline.firebaseapp.com",
   databaseURL: "https://uralskonline-default-rtdb.firebaseio.com",
   projectId: "uralskonline",
@@ -103,99 +116,80 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// ================= CONFIG =================
 const ADMIN_EMAIL = "admin@gmail.com";
-let role = "user";
-let dataCache = {};
+let role="user";
+let cache={};
 
-// ================= AUTH =================
-function register(){
-  auth.createUserWithEmailAndPassword(email.value, pass.value)
-  .catch(e=>alert(e.message));
+function logAction(text){
+  db.ref('uralsk/logs').push({text,time:Date.now()});
 }
 
-function login(){
-  auth.signInWithEmailAndPassword(email.value, pass.value)
-  .catch(e=>alert(e.message));
-}
-
+function login(){auth.signInWithEmailAndPassword(email.value,pass.value).catch(e=>alert(e.message));}
+function register(){auth.createUserWithEmailAndPassword(email.value,pass.value).catch(e=>alert(e.message));}
 function logout(){auth.signOut();}
 
 auth.onAuthStateChanged(user=>{
   if(user){
-    document.getElementById('authCard').classList.add('hidden');
+    document.getElementById('auth').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     document.getElementById('logoutBtn').classList.remove('hidden');
+    document.getElementById('userBox').innerText=user.email;
 
-    document.getElementById('userBox').innerText = user.email;
-
-    role = (user.email===ADMIN_EMAIL)?"admin":"user";
-
+    role=(user.email===ADMIN_EMAIL)?"admin":"user";
     if(role==='admin') document.getElementById('adminTab').classList.remove('hidden');
 
     listenDB();
   } else {
-    document.getElementById('authCard').classList.remove('hidden');
+    document.getElementById('auth').classList.remove('hidden');
     document.getElementById('app').classList.add('hidden');
     document.getElementById('logoutBtn').classList.add('hidden');
   }
 });
 
-// ================= NAV =================
-function show(id){
-  ['rating','hours','admin'].forEach(x=>document.getElementById(x).classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-  if(id==='admin') loadAdmin();
-}
+function show(id){['rating','hours','reasons','logs','admin'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById(id).classList.remove('hidden');if(id==='admin')loadAdmin();}
 
-// ================= REALTIME =================
 function listenDB(){
-  db.ref('uralsk').on('value', snap=>{
-    dataCache = snap.val()||{};
-    renderRating();
-    renderHours();
+  db.ref('uralsk').on('value',snap=>{
+    cache=snap.val()||{};
+    renderAll();
   });
 }
 
-// ================= RATING =================
+function renderAll(){renderRating();renderHours();renderReasons();renderLogs();}
+
 function renderRating(){
   const t=document.getElementById('ratingTable');
   t.innerHTML='<tr><th>Фракция</th><th>Баллы</th></tr>';
-
-  const r=dataCache.rating||{};
-
-  Object.keys(r).forEach(k=>{
-    let row=document.createElement('tr');
-    row.innerHTML=`<td>${k}</td><td>${r[k]}</td>`;
-    t.appendChild(row);
-  });
+  const r=cache.rating||{};
+  Object.keys(r).forEach(k=>t.innerHTML+=`<tr><td>${k}</td><td>${r[k]}</td></tr>`);
 }
 
-// ================= HOURS =================
 function renderHours(){
-  const box=document.getElementById('hoursBox');
-  const h=dataCache.hours||{};
-
-  let html='<table class="table"><tr><th>Фракция</th><th>Часы</th></tr>';
-
-  Object.keys(h).forEach(k=>{
-    html+=`<tr><td>${k}</td><td>${h[k]}</td></tr>`;
-  });
-
-  html+='</table>';
-  box.innerHTML=html;
+  const t=document.getElementById('hoursTable');
+  t.innerHTML='<tr><th>Фракция</th><th>Часы</th></tr>';
+  const h=cache.hours||{};
+  Object.keys(h).forEach(k=>t.innerHTML+=`<tr><td>${k}</td><td>${h[k]}</td></tr>`);
 }
 
-// ================= ADMIN =================
-function loadAdmin(){
-  if(role!=='admin') return;
-  db.ref('uralsk').once('value',snap=>{
-    document.getElementById('adminData').innerText=
-      JSON.stringify(snap.val(),null,2);
-  });
+function renderReasons(){
+  const t=document.getElementById('reasonsTable');
+  t.innerHTML='<tr><th>Игрок</th><th>Причина</th></tr>';
+  const r=cache.reasons||{};
+  Object.keys(r).forEach(k=>t.innerHTML+=`<tr><td>${k}</td><td>${r[k]}</td></tr>`);
 }
+
+function renderLogs(){
+  const logs=cache.logs||{};
+  document.getElementById('logsBox').innerText=JSON.stringify(logs,null,2);
+}
+
+// ACTIONS
+function setRating(){db.ref('uralsk/rating/'+factionName.value).set(Number(factionPoints.value));logAction('rating '+factionName.value);}
+function updateHours(){db.ref('uralsk/hours/'+hourFaction.value).transaction(v=>(v||0)+Number(hourValue.value));logAction('hours '+hourFaction.value);}
+function addReason(){db.ref('uralsk/reasons/'+reasonUser.value).set(reasonText.value);logAction('reason '+reasonUser.value);}
+
+function loadAdmin(){if(role!=='admin')return;db.ref('uralsk').once('value',s=>{document.getElementById('adminBox').innerText=JSON.stringify(s.val(),null,2);});}
 
 </script>
-
 </body>
 </html>
