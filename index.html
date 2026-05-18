@@ -461,3 +461,128 @@
                 let cls=reason.status==="pending"?"status-pending":(reason.status==="approved"?"status-approved":"status-rejected");
                 let txt=reason.status==="pending"?"⏳ Ожидает":(reason.status==="approved"?"✅ Одобрено":"❌ Отклонено");
                 st.innerHTML=`<span class="status-badge ${cls}">${txt}</span>`;
+            }
+            let ct=rrow.insertCell(3);
+            if(isAdmin){
+                let inp=document.createElement("input"); inp.type="text"; inp.placeholder="Комментарий..."; inp.value=reason.adminComment||""; inp.style.width="100%";
+                inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveAll(); addFullLog("Комментарий админа",factions[idx].name,e.target.value); renderHours(); })(i);
+                ct.appendChild(inp);
+            } else { ct.innerHTML=`<div style="color:var(--muted);">${reason.adminComment||"—"}</div>`; }
+        }
+        let normInp=document.getElementById("hourNorm");
+        normInp.value=hourNorm; normInp.disabled=!isAdmin;
+        document.getElementById("editNormBtn").style.display=isAdmin?"inline-block":"none";
+        normInp.onchange=(e)=>{ if(isAdmin){ let old=hourNorm; hourNorm=Math.max(0,parseFloat(e.target.value)||0); saveAll(); addFullLog("Изменение нормы часов","система",`${old}→${hourNorm}`); renderHours(); } };
+    }
+
+    function renderAdmin() {
+        let rlb=document.getElementById("ratingLogsBody"); rlb.innerHTML="";
+        ratingChangeLogs.slice(0,200).forEach(l=>{ let r=rlb.insertRow(); r.insertCell(0).innerHTML=l.time; r.insertCell(1).innerHTML=`<span style="color:var(--accent);">${l.user}</span>`; r.insertCell(2).innerHTML=l.faction; r.insertCell(3).innerHTML=l.field; r.insertCell(4).innerHTML=l.oldVal; r.insertCell(5).innerHTML=l.newVal; });
+        let ab=document.getElementById("accountsBody"); ab.innerHTML="";
+        for(let [login,data] of Object.entries(users)){
+            let r=ab.insertRow();
+            r.insertCell(0).innerHTML=login;
+            r.insertCell(1).innerHTML=data.email;
+            r.insertCell(2).innerHTML=factions[data.factionIndex]?.name||"—";
+            r.insertCell(3).innerHTML=userRegDate[login]||"—";
+            let delBtn=document.createElement("button"); delBtn.textContent="🗑️ Удалить"; delBtn.className="btn"; delBtn.style.background="rgba(220,70,70,0.3)"; delBtn.onclick=()=>{ if(confirm(`Удалить ${login}?`)){ delete users[login]; delete userRegDate[login]; saveAll(); renderAdmin(); } };
+            r.insertCell(4).appendChild(delBtn);
+        }
+        let flb=document.getElementById("fullLogsBody"); flb.innerHTML="";
+        fullAuditLogs.slice(0,200).forEach(l=>{ let r=flb.insertRow(); r.insertCell(0).innerHTML=l.time; r.insertCell(1).innerHTML=`<span style="color:var(--accent);">${l.user}</span>`; r.insertCell(2).innerHTML=l.faction; r.insertCell(3).innerHTML=l.action; r.insertCell(4).innerHTML=l.details; });
+    }
+
+    function updateUI() {
+        const isAdmin=currentUser?.type==="admin";
+        document.getElementById("authButtons").style.display=currentUser?"none":"flex";
+        document.getElementById("userInfoArea").style.display=currentUser?"flex":"none";
+        document.getElementById("logoutBtn").style.display=currentUser?"block":"none";
+        document.getElementById("editPriceBtn").style.display=isAdmin?"inline-block":"none";
+        document.getElementById("editGovBtn").style.display=isAdmin?"inline-block":"none";
+        document.getElementById("adminTabBtn").style.display=isAdmin?"inline-block":"none";
+        document.getElementById("adminFooter").style.display=isAdmin?"block":"none";
+        if(currentUser){
+            if(isAdmin) document.getElementById("userInfoArea").innerHTML="👑 Администратор";
+            else document.getElementById("userInfoArea").innerHTML=`👤 Лидер: ${factions[currentUser.factionIndex]?.name} (${currentUser.login})`;
+        }
+        renderMain(); renderHours(); if(isAdmin) renderAdmin();
+    }
+
+    function escapeHtml(s){ return String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    async function register(login,email,pass,factionIdx){
+        if(!login||!email||!pass) return "Заполните всё";
+        if(!/^[a-zA-Z0-9_]{3,20}$/.test(login)) return "Логин: 3-20 букв, цифр, _";
+        if(!/^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/.test(email)) return "Неверная почта";
+        if(users[login]) return "Логин занят";
+        if(factionIdx===undefined||factionIdx<0) return "Выберите фракцию";
+        let hash=await hashPassword(pass);
+        users[login]={passwordHash:hash,email,factionIndex:factionIdx,login};
+        userRegDate[login]=new Date().toLocaleString();
+        saveAll(); addFullLog("Регистрация",factions[factionIdx].name,`Новый лидер: ${login}`);
+        return null;
+    }
+    async function login(login,pass){
+        let u=users[login];
+        if(!u) return "Неверный логин";
+        let hash=await hashPassword(pass);
+        if(u.passwordHash!==hash) return "Неверный пароль";
+        currentUser={type:"leader",login:login,factionIndex:u.factionIndex};
+        saveAll(); addFullLog("Вход",factions[u.factionIndex].name,`Лидер ${login} вошёл`);
+        updateUI();
+        return null;
+    }
+    async function adminLogin(login,pass){
+        if(login==="admin"&&pass==="admin123"){ currentUser={type:"admin"}; saveAll(); addFullLog("Вход","система","Админ вошёл"); updateUI(); return null; }
+        return "Неверные данные (admin / admin123)";
+    }
+    function logout(){ if(currentUser) addFullLog("Выход","система",`${currentUser.type==="admin"?"Админ":currentUser.login} вышел`); currentUser=null; saveAll(); updateUI(); }
+
+    function initModals(){
+        document.getElementById("showRegisterBtn").onclick=()=>{
+            let s=document.getElementById("regFaction");
+            s.innerHTML='<option value="">Выберите фракцию</option>'+factions.map((f,i)=>`<option value="${i}">${f.name}</option>`).join('');
+            document.getElementById("registerModal").classList.add("active");
+        };
+        document.getElementById("showLoginBtn").onclick=()=>document.getElementById("loginModal").classList.add("active");
+        document.getElementById("adminLoginBtn").onclick=()=>document.getElementById("adminModal").classList.add("active");
+        document.getElementById("doRegister").onclick=async()=>{
+            let err=await register(document.getElementById("regLogin").value.trim(),document.getElementById("regEmail").value.trim(),document.getElementById("regPass").value,parseInt(document.getElementById("regFaction").value));
+            if(err) alert(err); else { alert("Регистрация успешна!"); document.getElementById("registerModal").classList.remove("active"); }
+        };
+        document.getElementById("doLogin").onclick=async()=>{
+            let err=await login(document.getElementById("loginUser").value.trim(),document.getElementById("loginPassword").value);
+            if(err) alert(err); else document.getElementById("loginModal").classList.remove("active");
+        };
+        document.getElementById("doAdmin").onclick=async()=>{
+            let err=await adminLogin(document.getElementById("adminUser").value.trim(),document.getElementById("adminPass").value);
+            if(err) alert(err); else document.getElementById("adminModal").classList.remove("active");
+        };
+        document.getElementById("logoutBtn").onclick=()=>logout();
+        document.querySelectorAll(".closeModal").forEach(b=>b.onclick=()=>b.closest(".modal")?.classList.remove("active"));
+        window.onclick=(e)=>{ if(e.target.classList&&e.target.classList.contains("modal")) e.target.classList.remove("active"); };
+        document.querySelectorAll(".tab-btn").forEach(btn=>{
+            btn.onclick=()=>{
+                document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+                btn.classList.add("active");
+                document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+                document.getElementById(btn.dataset.page+"Page").classList.add("active");
+                if(btn.dataset.page==="admin"&&currentUser?.type==="admin") renderAdmin();
+            };
+        });
+        document.getElementById("prevWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()-7); renderHours(); };
+        document.getElementById("nextWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()+7); renderHours(); };
+        document.getElementById("editPriceBtn").onclick=()=>alert("Измените цифры в блоке прайса");
+        document.getElementById("editGovBtn").onclick=()=>alert("Имена лидеров меняются в карточках");
+        document.getElementById("editNormBtn").onclick=()=>alert("Измените норму в поле выше");
+        document.getElementById("clearRatingLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить историю изменений?")){ ratingChangeLogs=[]; saveAll(); renderAdmin(); } });
+        document.getElementById("clearAccountsBtn")?.addEventListener("click",()=>{ if(confirm("Удалить всех пользователей?")){ users={}; userRegDate={}; saveAll(); renderAdmin(); } });
+        document.getElementById("clearFullLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить логи?")){ fullAuditLogs=[]; saveAll(); renderAdmin(); } });
+    }
+
+    loadData();
+    initModals();
+    updateUI();
+</script>
+</body>
+</html>
