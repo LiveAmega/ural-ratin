@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Уральск Онлайн | Лидеры фракций</title>
+    <title>Уральск Онлайн | Рейтинг лидеров фракций</title>
     <style>
         :root {
             color-scheme: dark;
@@ -14,7 +14,6 @@
             --muted: #8c98aa;
             --accent: #d7a85d;
             --green: #40c785;
-            --orange: #f59e42;
             --radius-xl: 28px;
             --radius-lg: 20px;
             --radius-md: 14px;
@@ -57,23 +56,6 @@
         }
         .logo-area p { font-size: 0.7rem; color: var(--muted); }
 
-        .nav-tabs {
-            display: flex;
-            gap: 8px;
-            background: rgba(0,0,0,0.3);
-            padding: 4px;
-            border-radius: 60px;
-        }
-        .tab-btn {
-            padding: 8px 20px;
-            border-radius: 40px;
-            background: transparent;
-            border: none;
-            color: var(--muted);
-            cursor: pointer;
-        }
-        .tab-btn.active { background: var(--accent); color: #0c0f18; }
-
         .btn-group { display: flex; flex-wrap: wrap; gap: 12px; }
         .btn {
             padding: 8px 18px;
@@ -87,9 +69,6 @@
         .btn-primary { background: var(--accent); border-color: var(--accent); color: #0c0f18; font-weight: 600; }
         .btn-danger { background: rgba(220,70,70,0.2); border-color: rgba(255,100,100,0.3); }
         .user-chip { background: rgba(0,0,0,0.45); border-radius: 60px; padding: 5px 16px; border-left: 2px solid var(--accent); }
-
-        .page { display: none; }
-        .page.active { display: block; }
 
         .stats-panel {
             display: grid;
@@ -159,19 +138,7 @@
             text-align: center;
         }
         input:disabled { opacity: 0.55; }
-        textarea {
-            background: #0f121d;
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 8px;
-            color: var(--text);
-            width: 100%;
-            font-family: inherit;
-            resize: vertical;
-        }
         .total-cell { font-weight: bold; color: var(--accent); background: rgba(215,168,93,.12); border-radius: 16px; text-align: center; }
-        .hours-cell { color: var(--green); font-weight: bold; }
-        .warning-cell { color: var(--orange); }
 
         .modal {
             display: none;
@@ -202,8 +169,6 @@
             border-radius: 16px;
             color: var(--text);
         }
-        .date-nav { display: flex; align-items: center; gap: 15px; justify-content: center; margin-bottom: 20px; }
-        .date-nav button { padding: 6px 15px; background: rgba(215,168,93,0.2); border: 1px solid var(--accent); border-radius: 30px; cursor: pointer; color: var(--text); }
         .footer-note { text-align: center; font-size: 0.7rem; margin-top: 24px; opacity: 0.6; }
 
         @media (max-width: 700px) { body { padding: 16px; } .card { padding: 1.2rem; } }
@@ -213,10 +178,6 @@
 <div class="container">
     <div class="topbar">
         <div class="logo-area"><h1>⚡ Уральск Онлайн</h1><p>GTA 5 RP · Лидеры фракций</p></div>
-        <div class="nav-tabs">
-            <button class="tab-btn active" data-page="main">📊 Рейтинг</button>
-            <button class="tab-btn" data-page="hours">⏱️ Часы лидеров</button>
-        </div>
         <div class="btn-group" id="authButtons">
             <button class="btn btn-primary" id="showRegisterBtn">📝 Регистрация</button>
             <button class="btn" id="showLoginBtn">🔑 Вход</button>
@@ -226,38 +187,44 @@
         <button id="logoutBtn" class="btn btn-danger" style="display:none;">Выйти</button>
     </div>
 
-    <!-- ГЛАВНАЯ СТРАНИЦА -->
-    <div id="mainPage" class="page active">
-        <div class="stats-panel">
-            <div class="stat-card"><div class="stat-label">🏆 Лучший результат</div><div class="stat-value" id="bestScore">0</div><div class="stat-sub" id="bestFaction">—</div></div>
-            <div class="stat-card"><div class="stat-label">⚠️ Штрафы (выговоры)</div><div class="stat-value" id="totalReprimands">0</div></div>
-            <div class="stat-card"><div class="stat-label">📈 Положительные баллы</div><div class="stat-value" id="positivePoints">0</div></div>
-            <div class="stat-card"><div class="stat-label">🕐 Последнее изменение</div><div class="stat-value" id="lastChange" style="font-size:1.2rem;">—</div></div>
+    <!-- ОСНОВНАЯ СТРАНИЦА С РЕЙТИНГОМ -->
+    <div class="stats-panel">
+        <div class="stat-card"><div class="stat-label">🏆 Лучший результат</div><div class="stat-value" id="bestScore">0</div><div class="stat-sub" id="bestFaction">—</div></div>
+        <div class="stat-card"><div class="stat-label">⚠️ Штрафы (выговоры)</div><div class="stat-value" id="totalReprimands">0</div></div>
+        <div class="stat-card"><div class="stat-label">📈 Положительные баллы</div><div class="stat-value" id="positivePoints">0</div></div>
+        <div class="stat-card"><div class="stat-label">🕐 Последнее изменение</div><div class="stat-value" id="lastChange" style="font-size:1.2rem;">—</div></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h2>💰 Прайс-лист</h2><button id="editPriceBtn" class="btn" style="display:none;">✏️</button></div>
+        <div class="price-grid" id="priceGrid"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h2>🏛️ Государственные структуры</h2><button id="editGovBtn" class="btn" style="display:none;">✏️</button></div>
+        <div class="gov-grid" id="govGrid"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h2>📊 Рейтинг эффективности</h2></div>
+        <div class="table-wrapper">
+            <table id="ratingTable">
+                <thead><tr><th>Фракция / Лидер</th><th>ГМП</th><th>МП</th><th>Поставки</th><th>Пресс</th><th>Заявки</th><th>Выговоры</th><th>Выезды адв.</th><th>Акты</th><th>ИТОГО</th></tr></thead>
+                <tbody id="ratingBody"></tbody>
+            </table>
         </div>
-        <div class="card"><div class="card-header"><h2>💰 Прайс-лист</h2><button id="editPriceBtn" class="btn" style="display:none;">✏️</button></div><div class="price-grid" id="priceGrid"></div></div>
-        <div class="card"><div class="card-header"><h2>🏛️ Государственные структуры</h2><button id="editGovBtn" class="btn" style="display:none;">✏️</button></div><div class="gov-grid" id="govGrid"></div></div>
-        <div class="card"><div class="card-header"><h2>📊 Рейтинг эффективности</h2></div><div class="table-wrapper"><table id="ratingTable"><thead><tr><th>Фракция / Лидер</th><th>ГМП</th><th>МП</th><th>Поставки</th><th>Пресс</th><th>Заявки</th><th>Выговоры</th><th>Выезды адв.</th><th>Акты</th><th>ИТОГО</th></tr></thead><tbody id="ratingBody"></tbody><table></div></div>
     </div>
 
-    <!-- СТРАНИЦА ЧАСОВ -->
-    <div id="hoursPage" class="page">
-        <div class="card">
-            <div class="card-header"><h2>⏱️ Часы лидеров</h2><div><span>Норма:</span><input type="number" id="hourNorm" value="40" style="width:70px;" disabled><button id="editNormBtn" class="btn" style="display:none;">✏️</button></div></div>
-            <div class="date-nav"><button id="prevWeekBtn">◀ Пред. неделя</button><span id="currentWeekRange" style="font-weight:bold;"></span><button id="nextWeekBtn">След. неделя ▶</button></div>
-            <div class="table-wrapper"><table id="hoursTable"><thead><tr><th>Фракция / Лидер</th><th id="day0"></th><th id="day1"></th><th id="day2"></th><th id="day3"></th><th id="day4"></th><th id="day5"></th><th id="day6"></th><th>Итого</th><th>Статус</th></tr></thead><tbody id="hoursBody"></tbody>}</div></div>
-        <div class="card"><div class="card-header"><h2>📝 Примечания</h2></div><div class="table-wrapper"><table id="notesTable"><thead><tr><th>Фракция</th><th>Причина невыполнения</th><th>Дата</th></tr></thead><tbody id="notesBody"></tbody></table></div></div>
-    </div>
-
-    <div id="adminFooter" class="footer-note" style="display:none;">🔐 Админ: admin / admin123</div>
+    <div id="adminFooter" class="footer-note" style="display:none;">🔐 Админ: admin / admin123 | Данные сохраняются в браузере</div>
 </div>
 
-<!-- МОДАЛКИ -->
-<div id="registerModal" class="modal"><div class="modal-content"><h3>📝 Регистрация</h3><select id="regFaction"></select><input type="text" id="regLogin" placeholder="Логин"><input type="email" id="regEmail" placeholder="Почта"><input type="password" id="regPass" placeholder="Пароль"><button id="doRegister" class="btn btn-primary">Зарегистрироваться</button><button class="btn closeModal">Отмена</button></div></div>
-<div id="loginModal" class="modal"><div class="modal-content"><h3>🔐 Вход</h3><input type="text" id="loginUser" placeholder="Логин"><input type="password" id="loginPassword" placeholder="Пароль"><button id="doLogin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
-<div id="adminModal" class="modal"><div class="modal-content"><h3>👑 Админ</h3><input type="text" id="adminUser" value="admin"><input type="password" id="adminPass" placeholder="Пароль"><button id="doAdmin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
+<!-- МОДАЛЬНЫЕ ОКНА -->
+<div id="registerModal" class="modal"><div class="modal-content"><h3>📝 Регистрация лидера</h3><select id="regFaction"></select><input type="text" id="regLogin" placeholder="Логин (3-20 символов)"><input type="email" id="regEmail" placeholder="Электронная почта"><input type="password" id="regPass" placeholder="Пароль (мин. 4 символа)"><button id="doRegister" class="btn btn-primary">Зарегистрироваться</button><button class="btn closeModal">Отмена</button></div></div>
+<div id="loginModal" class="modal"><div class="modal-content"><h3>🔐 Вход лидера</h3><input type="text" id="loginUser" placeholder="Логин"><input type="password" id="loginPassword" placeholder="Пароль"><button id="doLogin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
+<div id="adminModal" class="modal"><div class="modal-content"><h3>👑 Администратор</h3><input type="text" id="adminUser" placeholder="Логин" value="admin"><input type="password" id="adminPass" placeholder="Пароль"><button id="doAdmin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
 
 <script>
-    // ========== ХЕШИРОВАНИЕ ==========
+    // ========== ХЕШИРОВАНИЕ ПАРОЛЕЙ ==========
     async function hashPassword(password) {
         const encoder = new TextEncoder();
         const data = encoder.encode(password);
@@ -278,16 +245,14 @@
     ];
 
     let priceList = { gmp:250, mp:150, supply:250, press:190, apps:150, repr:90, lawyer:250, acts:250 };
-    const priceNames = { gmp:"ГМП", mp:"МП", supply:"Поставки", press:"Пресс", apps:"Заявки", repr:"Выговоры", lawyer:"Выезды адв.", acts:"Акты" };
+    const priceNames = { gmp:"ГМП", mp:"МП", supply:"Участие в поставках", press:"Пресс-новости", apps:"Принятые заявки", repr:"Выговоры", lawyer:"Выезды адвокатов", acts:"Написанные акты" };
     const fields = ["gmp","mp","supply","press","apps","repr","lawyer","acts"];
     const fieldRus = { gmp:"ГМП", mp:"МП", supply:"Поставки", press:"Пресс", apps:"Заявки", repr:"Выговоры", lawyer:"Выезды адв.", acts:"Акты" };
 
-    let stats = {}, users = {}, currentUser = null, lastChangeTimestamp = Date.now(), hourNorm = 40, notesData = {}, hoursData = {};
-    let currentWeekStart = new Date();
-    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + (currentWeekStart.getDay() === 0 ? -6 : 1));
-
-    function getWeekDates(start) { let dates = []; for(let i=0;i<7;i++){ let d=new Date(start); d.setDate(start.getDate()+i); dates.push(d.toISOString().slice(0,10)); } return dates; }
-    function formatDateRange(start){ let end=new Date(start); end.setDate(start.getDate()+6); return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`; }
+    let stats = {};
+    let users = {};
+    let currentUser = null;
+    let lastChangeTimestamp = Date.now();
 
     function loadData() {
         try {
@@ -295,9 +260,6 @@
             let u = localStorage.getItem("ural_users"); if(u) users = JSON.parse(u);
             let p = localStorage.getItem("ural_price"); if(p) priceList = JSON.parse(p);
             let t = localStorage.getItem("ural_lastchange"); if(t) lastChangeTimestamp = parseInt(t);
-            let hn = localStorage.getItem("ural_hournorm"); if(hn) hourNorm = parseInt(hn);
-            let hd = localStorage.getItem("ural_hours"); if(hd) hoursData = JSON.parse(hd);
-            let nd = localStorage.getItem("ural_notes"); if(nd) notesData = JSON.parse(nd);
             let ses = localStorage.getItem("ural_session");
             if(ses) { let sess = JSON.parse(ses);
                 if(sess.type === "admin") currentUser = { type: "admin" };
@@ -306,28 +268,38 @@
         } catch(e) { console.warn(e); }
         for(let i=0;i<factions.length;i++) {
             if(!stats[i]) stats[i] = { gmp:0, mp:0, supply:0, press:0, apps:0, repr:0, lawyer:0, acts:0 };
-            if(!hoursData[i]) hoursData[i] = {};
-            if(!notesData[i]) notesData[i] = { text: "", lastUpdated: "" };
         }
     }
+
     function saveAll() {
         localStorage.setItem("ural_stats", JSON.stringify(stats));
         localStorage.setItem("ural_users", JSON.stringify(users));
         localStorage.setItem("ural_price", JSON.stringify(priceList));
         localStorage.setItem("ural_lastchange", lastChangeTimestamp);
-        localStorage.setItem("ural_hournorm", hourNorm);
-        localStorage.setItem("ural_hours", JSON.stringify(hoursData));
-        localStorage.setItem("ural_notes", JSON.stringify(notesData));
         if(currentUser) localStorage.setItem("ural_session", JSON.stringify({ type: currentUser.type, login: currentUser.login }));
         else localStorage.removeItem("ural_session");
     }
 
-    function calcTotal(s) { let pos = s.gmp*priceList.gmp + s.mp*priceList.mp + s.supply*priceList.supply + s.press*priceList.press + s.apps*priceList.apps + s.lawyer*priceList.lawyer + s.acts*priceList.acts; return pos - (s.repr * priceList.repr); }
-    function calcPositive(s) { return s.gmp*priceList.gmp + s.mp*priceList.mp + s.supply*priceList.supply + s.press*priceList.press + s.apps*priceList.apps + s.lawyer*priceList.lawyer + s.acts*priceList.acts; }
+    function calcTotal(s) {
+        let pos = s.gmp*priceList.gmp + s.mp*priceList.mp + s.supply*priceList.supply + s.press*priceList.press + 
+                  s.apps*priceList.apps + s.lawyer*priceList.lawyer + s.acts*priceList.acts;
+        return pos - (s.repr * priceList.repr);
+    }
+
+    function calcPositive(s) {
+        return s.gmp*priceList.gmp + s.mp*priceList.mp + s.supply*priceList.supply + s.press*priceList.press + 
+               s.apps*priceList.apps + s.lawyer*priceList.lawyer + s.acts*priceList.acts;
+    }
 
     function renderMainPage() {
         let bestScore = -Infinity, bestFactionName = "—", totalReprimands = 0, totalPositive = 0;
-        for(let i=0;i<factions.length;i++){ let s=stats[i]||{}; let t=calcTotal(s); if(t>bestScore){bestScore=t;bestFactionName=factions[i].name;} totalReprimands+=(s.repr||0); totalPositive+=calcPositive(s); }
+        for(let i=0;i<factions.length;i++){ 
+            let s=stats[i]||{}; 
+            let t=calcTotal(s); 
+            if(t>bestScore){bestScore=t;bestFactionName=factions[i].name;} 
+            totalReprimands+=(s.repr||0); 
+            totalPositive+=calcPositive(s); 
+        }
         document.getElementById("bestScore").innerText = bestScore===-Infinity?0:bestScore;
         document.getElementById("bestFaction").innerHTML = bestFactionName;
         document.getElementById("totalReprimands").innerText = totalReprimands;
@@ -335,24 +307,30 @@
         document.getElementById("lastChange").innerHTML = lastChangeTimestamp>0 ? new Date(lastChangeTimestamp).toLocaleString() : "—";
 
         const isAdmin = currentUser?.type === "admin";
+        
+        // Прайс-лист
         const priceGrid = document.getElementById("priceGrid"); priceGrid.innerHTML = "";
         for(let [key,name] of Object.entries(priceNames)) {
             let div = document.createElement("div"); div.className = "price-item";
             if(isAdmin){
                 div.innerHTML = `<span>${name}</span><input type="number" value="${priceList[key]}" style="width:70px">`;
-                div.querySelector("input").onchange = (e) => { priceList[key]=Math.max(0,parseInt(e.target.value)||0); saveAll(); renderMainPage(); renderHoursPage(); };
+                div.querySelector("input").onchange = (e) => { priceList[key]=Math.max(0,parseInt(e.target.value)||0); saveAll(); renderMainPage(); };
             } else { div.innerHTML = `<span>${name}</span><span class="price-value">${priceList[key]} баллов</span>`; }
             priceGrid.appendChild(div);
         }
+        
+        // Госструктуры
         const govGrid = document.getElementById("govGrid"); govGrid.innerHTML = "";
         factions.forEach((f,idx)=>{
             let card = document.createElement("div"); card.className = "gov-card";
             if(isAdmin){
                 card.innerHTML = `<div class="gov-name">${f.name}</div><input type="text" value="${escapeHtml(f.leader)}" style="width:100%">`;
-                card.querySelector("input").onchange = (e) => { factions[idx].leader = e.target.value; saveAll(); renderMainPage(); renderHoursPage(); };
+                card.querySelector("input").onchange = (e) => { factions[idx].leader = e.target.value; saveAll(); renderMainPage(); };
             } else { card.innerHTML = `<div class="gov-name">${f.name}</div><div class="gov-leader">👤 ${f.leader}</div>`; }
             govGrid.appendChild(card);
         });
+        
+        // Таблица рейтинга
         let tbody = document.getElementById("ratingBody"); tbody.innerHTML = "";
         for(let i=0;i<factions.length;i++){
             let canEdit = isAdmin || (currentUser?.type==="leader" && currentUser.factionIndex===i);
@@ -364,62 +342,19 @@
                 let td = row.insertCell();
                 let inp = document.createElement("input"); inp.type="number"; inp.value=s[f];
                 if(!canEdit) inp.disabled=true;
-                inp.onchange = ((idx,fld)=> (e)=>{ if(canEdit){ stats[idx][fld]=Math.max(0,parseInt(e.target.value)||0); lastChangeTimestamp=Date.now(); saveAll(); renderMainPage(); renderHoursPage(); }})(i,f);
+                inp.onchange = ((idx,fld)=> (e)=>{ 
+                    if(canEdit){ 
+                        let oldVal = stats[idx][fld];
+                        stats[idx][fld]=Math.max(0,parseInt(e.target.value)||0); 
+                        if(stats[idx][fld] !== oldVal) lastChangeTimestamp=Date.now();
+                        saveAll(); 
+                        renderMainPage(); 
+                    }
+                })(i,f);
                 td.appendChild(inp);
             }
             let tdTotal = row.insertCell(); tdTotal.className="total-cell"; tdTotal.innerText=total;
         }
-    }
-
-    function renderHoursPage() {
-        const isAdmin = currentUser?.type === "admin";
-        const isLeader = currentUser?.type === "leader";
-        const myIdx = isLeader ? currentUser.factionIndex : -1;
-        const weekDates = getWeekDates(currentWeekStart);
-        const dayNames = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
-        for(let i=0;i<7;i++) {
-            let el = document.getElementById(`day${i}`);
-            if(el) el.innerHTML = `${dayNames[i]}<br><span style="font-size:0.65rem;">${weekDates[i].slice(5)}</span>`;
-        }
-        document.getElementById("currentWeekRange").innerText = formatDateRange(currentWeekStart);
-        
-        const hoursBody = document.getElementById("hoursBody"); hoursBody.innerHTML = "";
-        const notesBody = document.getElementById("notesBody"); notesBody.innerHTML = "";
-        
-        for(let i=0;i<factions.length;i++){
-            const canEdit = isAdmin || (isLeader && myIdx === i);
-            const userHours = hoursData[i] || {};
-            let totalHours = 0;
-            let row = hoursBody.insertRow();
-            row.insertCell(0).innerHTML = `<strong>${factions[i].name}</strong><br><span style="font-size:0.7rem;">👑 ${factions[i].leader}</span>`;
-            for(let d=0;d<7;d++){
-                let td = row.insertCell();
-                let date = weekDates[d];
-                let val = userHours[date] || 0;
-                totalHours += val;
-                let inp = document.createElement("input"); inp.type="number"; inp.value=val; inp.step="0.5"; inp.style.width="60px";
-                if(!canEdit) inp.disabled=true;
-                inp.onchange = ((idx, dt)=> (e)=>{ if(canEdit){ let v=parseFloat(e.target.value)||0; if(v<0)v=0; hoursData[idx][dt]=v; saveAll(); renderHoursPage(); }})(i,date);
-                td.appendChild(inp);
-            }
-            row.insertCell(1).innerHTML = `<span class="${totalHours>=hourNorm?'hours-cell':'warning-cell'}">${totalHours.toFixed(1)} ч.</span>`;
-            row.insertCell(2).innerHTML = `<span style="color:${totalHours>=hourNorm?'var(--green)':'var(--orange)'}">${totalHours>=hourNorm?"✅ Выполнена":"❌ Не выполнена"}</span>`;
-            
-            let note = notesData[i] || {};
-            let noteRow = notesBody.insertRow();
-            noteRow.insertCell(0).innerHTML = `<strong>${factions[i].name}</strong>`;
-            let noteTd = noteRow.insertCell(1);
-            if(canEdit){
-                let ta = document.createElement("textarea"); ta.rows=2; ta.placeholder="Причина невыполнения нормы..."; ta.value=note.text||"";
-                ta.onchange = ((idx)=> (e)=>{ notesData[idx].text=e.target.value; notesData[idx].lastUpdated=new Date().toLocaleString(); saveAll(); renderHoursPage(); })(i);
-                noteTd.appendChild(ta);
-            } else { noteTd.innerHTML = `<div style="color:var(--muted);">${note.text || "—"}</div>`; }
-            noteRow.insertCell(2).innerHTML = `<span style="font-size:0.7rem;">${note.lastUpdated || "—"}</span>`;
-        }
-        let normInput = document.getElementById("hourNorm");
-        normInput.value = hourNorm; normInput.disabled = !isAdmin;
-        document.getElementById("editNormBtn").style.display = isAdmin ? "inline-block" : "none";
-        normInput.onchange = (e) => { if(isAdmin){ hourNorm = Math.max(0, parseFloat(e.target.value)||0); saveAll(); renderHoursPage(); } };
     }
 
     function updateUI() {
@@ -430,12 +365,12 @@
         document.getElementById("editPriceBtn").style.display = isAdmin ? "inline-block" : "none";
         document.getElementById("editGovBtn").style.display = isAdmin ? "inline-block" : "none";
         document.getElementById("adminFooter").style.display = isAdmin ? "block" : "none";
+        
         if(currentUser){
             if(isAdmin) document.getElementById("userInfoArea").innerHTML = "👑 Администратор";
             else document.getElementById("userInfoArea").innerHTML = `👤 Лидер: ${factions[currentUser.factionIndex]?.name} (${currentUser.login})`;
         }
         renderMainPage();
-        renderHoursPage();
     }
 
     function escapeHtml(str) { return String(str).replace(/[&<>]/g, m=>({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
@@ -444,6 +379,7 @@
         if(!login || !email || !password) return "Заполните все поля";
         if(!/^[a-zA-Z0-9_]{3,20}$/.test(login)) return "Логин: 3-20 букв, цифр, _";
         if(!/^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/.test(email)) return "Неверная почта";
+        if(password.length<4) return "Пароль минимум 4 символа";
         if(users[login]) return "Логин уже занят";
         if(factionIdx===undefined || factionIdx<0) return "Выберите фракцию";
         let hash = await hashPassword(password);
@@ -451,6 +387,7 @@
         saveAll();
         return null;
     }
+
     async function login(login, password) {
         let user = users[login];
         if(!user) return "Неверный логин";
@@ -461,6 +398,7 @@
         updateUI();
         return null;
     }
+
     async function adminLogin(login, pass) {
         if(login === "admin" && pass === "admin123"){
             currentUser = { type: "admin" };
@@ -470,6 +408,7 @@
         }
         return "Неверные данные (admin / admin123)";
     }
+
     function logout(){ currentUser=null; saveAll(); updateUI(); }
 
     function initModals() {
@@ -480,9 +419,10 @@
         };
         document.getElementById("showLoginBtn").onclick = () => document.getElementById("loginModal").classList.add("active");
         document.getElementById("adminLoginBtn").onclick = () => document.getElementById("adminModal").classList.add("active");
+        
         document.getElementById("doRegister").onclick = async () => {
             let err = await register(document.getElementById("regLogin").value.trim(), document.getElementById("regEmail").value.trim(), document.getElementById("regPass").value, parseInt(document.getElementById("regFaction").value));
-            if(err) alert(err); else { alert("Регистрация успешна!"); document.getElementById("registerModal").classList.remove("active"); }
+            if(err) alert(err); else { alert("Регистрация успешна! Теперь войдите."); document.getElementById("registerModal").classList.remove("active"); }
         };
         document.getElementById("doLogin").onclick = async () => {
             let err = await login(document.getElementById("loginUser").value.trim(), document.getElementById("loginPassword").value);
@@ -493,21 +433,12 @@
             if(err) alert(err); else document.getElementById("adminModal").classList.remove("active");
         };
         document.getElementById("logoutBtn").onclick = () => logout();
+        
         document.querySelectorAll(".closeModal").forEach(btn => btn.onclick = () => btn.closest(".modal")?.classList.remove("active"));
         window.onclick = (e) => { if(e.target.classList && e.target.classList.contains("modal")) e.target.classList.remove("active"); };
-        document.querySelectorAll(".tab-btn").forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-                btn.classList.add("active");
-                document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-                document.getElementById(btn.dataset.page+"Page").classList.add("active");
-            };
-        });
-        document.getElementById("prevWeekBtn").onclick = () => { currentWeekStart.setDate(currentWeekStart.getDate() - 7); renderHoursPage(); };
-        document.getElementById("nextWeekBtn").onclick = () => { currentWeekStart.setDate(currentWeekStart.getDate() + 7); renderHoursPage(); };
-        document.getElementById("editPriceBtn").onclick = () => alert("Измените цифры в блоке прайса");
-        document.getElementById("editGovBtn").onclick = () => alert("Имена лидеров меняются в карточках");
-        document.getElementById("editNormBtn").onclick = () => alert("Измените норму в поле выше");
+        
+        document.getElementById("editPriceBtn").onclick = () => alert("Измените цифры прямо в блоке прайса → нажмите Enter");
+        document.getElementById("editGovBtn").onclick = () => alert("Имена лидеров структур можно менять прямо в карточках");
     }
 
     loadData();
