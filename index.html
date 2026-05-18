@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Уральск Онлайн | PRO LOGIN UPGRADE</title>
+<title>Уральск Онлайн | SIMPLE LOGIN SYSTEM</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <style>
@@ -26,146 +25,98 @@ input{width:100%;padding:8px;margin:3px 0;border-radius:8px;border:1px solid #22
 <body>
 
 <div class="card">
-<h2>⚡ Уральск Онлайн (PRO LOGIN UPGRADE)</h2>
-<div id="status">Ожидание входа...</div>
+<h2>⚡ Уральск Онлайн</h2>
+<div id="status">Система загружена</div>
 <div id="userBox"></div>
-<div class="small" id="roleBox"></div>
-<button id="logoutBtn" class="danger hidden" onclick="logout()">Выйти</button>
+<div id="roleBox"></div>
+<button onclick="logout()" id="logoutBtn" class="danger hidden">Выйти</button>
 </div>
 
-<div id="auth" class="card">
-<h3>Вход</h3>
-<input id="email" placeholder="Email" />
-<input id="pass" type="password" placeholder="Пароль" />
-<button class="primary" onclick="login()">Войти</button>
-
-<hr style="border:1px solid #222;margin:10px 0"/>
-<button class="green" onclick="googleLogin()">Войти через Google</button>
+<!-- TOP BUTTONS -->
+<div class="card">
+<button onclick="openLeaderLogin()">Лидер вход</button>
+<button onclick="openLeaderRegister()">Лидер регистрация</button>
+<button onclick="openAdminLogin()">Админ вход</button>
 </div>
 
+<!-- FORMS -->
+<div id="leaderLogin" class="card hidden">
+<h3>Лидер вход</h3>
+<input id="lEmail" placeholder="Логин" />
+<input id="lPass" type="password" placeholder="Пароль" />
+<button onclick="leaderLogin()">Войти</button>
+</div>
+
+<div id="leaderRegister" class="card hidden">
+<h3>Регистрация лидера</h3>
+<input id="rEmail" placeholder="Логин" />
+<input id="rPass" type="password" placeholder="Пароль" />
+<button onclick="leaderRegister()">Создать</button>
+</div>
+
+<div id="adminLogin" class="card hidden">
+<h3>Админ вход</h3>
+<input id="adminPass" type="password" placeholder="Пароль" />
+<button onclick="adminLogin()">Войти</button>
+</div>
+
+<!-- APP -->
 <div id="app" class="hidden">
-
 <div class="card">
 <button onclick="show('rating')">📊 Рейтинг</button>
 <button onclick="show('hours')">⏱ Часы</button>
 <button onclick="show('reasons')">🧾 Причины</button>
 <button onclick="show('logs')">📜 Логи</button>
-<button onclick="show('admin')">👑 Админ</button>
+<button id="adminTab" class="hidden" onclick="show('admin')">👑 Админ</button>
 </div>
 
-<div id="rating" class="card">
-<h3>Рейтинг</h3>
-<input id="factionName" placeholder="Фракция" />
-<input id="factionPoints" placeholder="Баллы" />
-<button class="green" onclick="setRating()">Обновить</button>
-<table class="table" id="ratingTable"></table>
-</div>
-
-<div id="hours" class="card hidden">
-<h3>Часы</h3>
-<input id="hourFaction" placeholder="Фракция" />
-<input id="hourValue" placeholder="+/-" />
-<button class="green" onclick="updateHours()">Изменить</button>
-<table class="table" id="hoursTable"></table>
-</div>
-
-<div id="reasons" class="card hidden">
-<h3>Причины</h3>
-<input id="reasonUser" placeholder="Игрок" />
-<input id="reasonText" placeholder="Причина" />
-<button class="green" onclick="addReason()">Добавить</button>
-<table class="table" id="reasonsTable"></table>
-</div>
-
-<div id="logs" class="card hidden">
-<h3>Логи</h3>
-<pre id="logsBox"></pre>
-</div>
-
-<div id="admin" class="card hidden">
-<h3>Админ</h3>
-<pre id="adminBox"></pre>
-</div>
-
+<div id="rating" class="card"><h3>Рейтинг</h3></div>
+<div id="hours" class="card hidden"><h3>Часы</h3></div>
+<div id="reasons" class="card hidden"><h3>Причины</h3></div>
+<div id="logs" class="card hidden"><h3>Логи</h3></div>
+<div id="admin" class="card hidden"><h3>Админ</h3></div>
 </div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDz3tFFVILAnAP3u_FFnxejFoDIuLDoQP4",
-  authDomain: "uralskonline.firebaseapp.com",
-  databaseURL: "https://uralskonline-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "uralskonline",
-  storageBucket: "uralskonline.firebasestorage.app",
-  messagingSenderId: "738077138136",
-  appId: "1:738077138136:web:c68f31b26c44562a9f0bad"
+const firebaseConfig={
+apiKey:"YOUR_API_KEY",
+authDomain:"uralskonline.firebaseapp.com",
+databaseURL:"https://uralskonline-default-rtdb.europe-west1.firebasedatabase.app",
+projectId:"uralskonline",
+storageBucket:"uralskonline.firebasestorage.app",
+messagingSenderId:"738077138136",
+appId:"1:738077138136:web:c68f31b26c44562a9f0bad"
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.database();
+const db=firebase.database();
 
-const ADMIN_EMAIL = "admin@gmail.com";
-const WHITELIST = ["admin@gmail.com", "leader@gmail.com"];
+let role="guest";
+let currentUser=null;
+const ADMIN_PASSWORD="12345";
+let leaders=JSON.parse(localStorage.getItem("leaders")||"{}");
 
-let role = "user";
-let cache = {};
-
-function logAction(type,data){
-  db.ref('uralsk/logs').push({type,data,user:auth.currentUser?auth.currentUser.email:"unknown",time:Date.now()});
+function setUI(){
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('logoutBtn').classList.remove('hidden');
+  userBox.innerText=currentUser;
+  roleBox.innerText="Роль: "+role;
 }
 
-function login(){auth.signInWithEmailAndPassword(email.value,pass.value).catch(e=>alert(e.message));}
+function logout(){role="guest";currentUser=null;document.getElementById('app').classList.add('hidden');document.getElementById('logoutBtn').classList.add('hidden');}
 
-function googleLogin(){
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(e=>alert(e.message));
-}
+function openLeaderLogin(){hide();leaderLogin.classList.remove('hidden');}
+function openLeaderRegister(){hide();leaderRegister.classList.remove('hidden');}
+function openAdminLogin(){hide();adminLogin.classList.remove('hidden');}
+function hide(){leaderLogin.classList.add('hidden');leaderRegister.classList.add('hidden');adminLogin.classList.add('hidden');}
 
-function logout(){auth.signOut();}
+function leaderRegister(){leaders[rEmail.value]=rPass.value;localStorage.setItem("leaders",JSON.stringify(leaders));alert("OK");}
 
-auth.onAuthStateChanged(u=>{
-  if(u){
-    if(!WHITELIST.includes(u.email)){
-      document.getElementById('status').innerText="❌ Нет доступа";
-      auth.signOut();
-      return;
-    }
+function leaderLogin(){if(leaders[lEmail.value]===lPass.value){role="leader";currentUser=lEmail.value;setUI();hide();}else alert("error");}
 
-    document.getElementById('auth').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-    document.getElementById('logoutBtn').classList.remove('hidden');
+function adminLogin(){if(adminPass.value===ADMIN_PASSWORD){role="admin";currentUser="ADMIN";setUI();hide();document.getElementById('adminTab').classList.remove('hidden');}else alert("wrong");}
 
-    document.getElementById('userBox').innerText=u.email;
-
-    role = u.email===ADMIN_EMAIL ? "admin" : "user";
-    document.getElementById('roleBox').innerText="Роль: "+role;
-
-    document.getElementById('status').innerText="✔ Доступ разрешён";
-
-    listenDB();
-  } else {
-    document.getElementById('auth').classList.remove('hidden');
-    document.getElementById('app').classList.add('hidden');
-    document.getElementById('logoutBtn').classList.add('hidden');
-    document.getElementById('status').innerText="Ожидание входа...";
-  }
-});
-
-function show(id){['rating','hours','reasons','logs','admin'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById(id).classList.remove('hidden');if(id==='admin')loadAdmin();}
-
-function listenDB(){db.ref('uralsk').on('value',s=>{cache=s.val()||{};renderAll();});}
-
-function renderAll(){renderRating();renderHours();renderReasons();renderLogs();}
-function renderRating(){const r=cache.rating||{};ratingTable.innerHTML='<tr><th>Фракция</th><th>Баллы</th></tr>'+Object.keys(r).map(k=>`<tr><td>${k}</td><td>${r[k]}</td></tr>`).join('');}
-function renderHours(){const h=cache.hours||{};hoursTable.innerHTML='<tr><th>Фракция</th><th>Часы</th></tr>'+Object.keys(h).map(k=>`<tr><td>${k}</td><td>${h[k]}</td></tr>`).join('');}
-function renderReasons(){const r=cache.reasons||{};reasonsTable.innerHTML='<tr><th>Игрок</th><th>Причина</th></tr>'+Object.keys(r).map(k=>`<tr><td>${k}</td><td>${r[k]}</td></tr>`).join('');}
-function renderLogs(){logsBox.innerText=JSON.stringify(cache.logs||{},null,2);}
-
-function setRating(){if(role!=='admin')return alert('No access');db.ref('uralsk/rating/'+factionName.value).set(Number(factionPoints.value));logAction('rating',{});}
-function updateHours(){if(role!=='admin')return alert('No access');db.ref('uralsk/hours/'+hourFaction.value).transaction(v=>(v||0)+Number(hourValue.value));logAction('hours',{});}
-function addReason(){if(role!=='admin')return alert('No access');db.ref('uralsk/reasons/'+reasonUser.value).set(reasonText.value);logAction('reason',{});}
-
-function loadAdmin(){db.ref('uralsk').once('value',s=>adminBox.innerText=JSON.stringify(s.val(),null,2));}
+function show(id){['rating','hours','reasons','logs','admin'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById(id).classList.remove('hidden');}
 </script>
 </body>
 </html>
