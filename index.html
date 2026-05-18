@@ -25,7 +25,6 @@
         /* Header */
         .glass-header {
             background: white;
-            backdrop-filter: blur(0px);
             border-radius: 28px;
             padding: 16px 28px;
             margin-bottom: 28px;
@@ -146,10 +145,6 @@
             vertical-align: middle;
         }
 
-        .faction-row:hover {
-            background: #fef9f0;
-        }
-
         .badge {
             display: inline-block;
             padding: 6px 14px;
@@ -173,6 +168,10 @@
         .badge-normal {
             background: #e6f7e6;
             color: #2c6e2c;
+        }
+        .badge-red {
+            background: #ffecec;
+            color: #c2410c;
         }
 
         .score-number {
@@ -199,17 +198,11 @@
             font-weight: bold;
             color: #b57c1c;
             transition: 0.2s;
+            display: inline-block;
         }
         .save-icon:hover {
             background: #d7a85d;
             color: white;
-        }
-
-        .price-item {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px dashed #e2e8f0;
-            padding: 12px 0;
         }
 
         .footer-note {
@@ -240,20 +233,37 @@
             padding: 24px;
             box-shadow: 0 30px 40px rgba(0,0,0,0.2);
         }
+        .faction-select {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 16px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        .current-faction-info {
+            background: #f0f2f8;
+            padding: 12px;
+            border-radius: 16px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
 
         button {
             cursor: pointer;
         }
 
-        .inline-edit-mode td .display-val {
-            display: inline-block;
-        }
-        .week-input {
-            width: 55px;
-            padding: 5px;
-            border-radius: 12px;
-            border: 1px solid #ccc;
-            text-align: center;
+        .edit-mode-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #d7a85d;
+            color: #1e2a3a;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 100;
         }
     </style>
 </head>
@@ -269,10 +279,10 @@
             <button class="tab-btn" data-tab="hours">⏱️ Часы лидеров</button>
             <button class="tab-btn" data-tab="prices">💰 Прайс-лист</button>
         </div>
-        <button class="admin-btn" id="adminBtn">🔐 Админ панель</button>
+        <button class="admin-btn" id="adminBtn">🔐 Вход для лидера</button>
     </div>
 
-    <!-- === РЕЙТИНГ фракций (динамическая таблица) === -->
+    <!-- === РЕЙТИНГ фракций === -->
     <div id="tab-rating" class="tab-content active">
         <div class="card">
             <h3>📊 Рейтинг эффективности фракций</h3>
@@ -286,7 +296,6 @@
             </div>
             <div style="margin-top:16px; font-size:13px; color:#2c6e2c;">✅ Лига S: 90+ | A: 75+ | B: 50+ | C: 30+ | D: ниже 30 (ротация)</div>
         </div>
-        <!-- Детализация действий (показывает сколько баллов за активности) -->
         <div class="card">
             <h3>📋 Детализация активности (баллы за период)</h3>
             <div class="table-wrapper">
@@ -295,11 +304,11 @@
                     <tbody id="detailsBody"></tbody>
                 </table>
             </div>
-            <div class="footer-note">* Чтобы изменить данные — войдите в админ-панель</div>
+            <div class="footer-note">* Каждый лидер может редактировать только данные своей фракции</div>
         </div>
     </div>
 
-    <!-- === ЧАСЫ ЛИДЕРОВ (с возможностью редактирования админом) === -->
+    <!-- === ЧАСЫ ЛИДЕРОВ === -->
     <div id="tab-hours" class="tab-content">
         <div class="card">
             <h3>⏱️ Посещаемость лидеров (часы в день)</h3>
@@ -322,24 +331,59 @@
     </div>
 </div>
 
-<!-- Админ модалка -->
+<!-- Админ модалка (вход по фракции) -->
 <div id="adminModal" class="admin-panel">
     <div class="admin-modal">
-        <h3>🔧 Панель управления</h3>
-        <p>Редактирование данных фракций: </p>
-        <button id="closeAdmin" style="margin-top: 15px; background:#eee; border:none; padding:8px 16px; border-radius: 30px;">Закрыть</button>
-        <button id="resetData" style="margin-left: 10px; background:#ffd966; border:none; padding:8px 16px; border-radius: 30px;">Сбросить демо</button>
+        <h3>🔐 Вход в панель управления фракцией</h3>
+        <p>Выберите вашу фракцию и введите пароль:</p>
+        
+        <select id="factionSelect" class="faction-select">
+            <option value="">-- Выберите фракцию --</option>
+        </select>
+        
+        <input type="password" id="factionPassword" placeholder="Введите пароль" style="width:100%; padding:12px; border-radius:16px; border:1px solid #ddd; margin:10px 0;">
+        
+        <div id="wrongPasswordMsg" style="color:red; font-size:0.8rem; display:none;">❌ Неверный пароль</div>
+        
+        <button id="loginFactionBtn" style="background:#d7a85d; border:none; padding:12px 20px; border-radius:30px; width:100%; font-weight:bold; margin-top:10px;">Войти</button>
+        <button id="closeAdmin" style="margin-top: 15px; background:#eee; border:none; padding:8px 16px; border-radius: 30px; width:100%;">Отмена</button>
+        
+        <div class="current-faction-info" id="superAdminInfo" style="margin-top:15px; font-size:12px; text-align:center;">
+            🔧 Супер-админ: пароль <strong>Super2025</strong> (доступ ко всем)
+        </div>
     </div>
 </div>
 
+<!-- Индикатор режима редактирования -->
+<div id="editIndicator" class="edit-mode-indicator" style="display:none;">
+    ✏️ Режим редактирования: <span id="editingFactionName"></span>
+</div>
+
 <script>
-    // ---------- СПИСОК ФРАКЦИЙ ----------
+    // ---------- СПИСОК ФРАКЦИЙ И ИХ ПАРОЛИ ----------
     const FACTIONS = [
         "Правительство", "Адвокатура", "Генеральная прокуратура", "Прокуратура субъекта",
         "Следственный комитет", "Уральск ЛАЙВ", "ГИБДД", "ГКБ", "ВС РФ", "МВД", "ФСБ"
     ];
+    
+    // ПАРОЛИ ДЛЯ КАЖДОЙ ФРАКЦИИ (можно менять)
+    const FACTION_PASSWORDS = {
+        "Правительство": "gov2025",
+        "Адвокатура": "advokat",
+        "Генеральная прокуратура": "genprok",
+        "Прокуратура субъекта": "prok24",
+        "Следственный комитет": "sledkom",
+        "Уральск ЛАЙВ": "live2025",
+        "ГИБДД": "gibdd77",
+        "ГКБ": "gkbhelp",
+        "ВС РФ": "army2025",
+        "МВД": "mvd123",
+        "ФСБ": "fsb007"
+    };
+    
+    const SUPER_ADMIN_PASSWORD = "Super2025"; // пароль для доступа ко всем фракциям
 
-    // ----- ПРАЙС-ЛИСТ (действие -> баллы за единицу) -----
+    // ----- ПРАЙС-ЛИСТ -----
     const PRICE_LIST = [
         { action: "ГМП", points: 250 },
         { action: "МП", points: 150 },
@@ -351,13 +395,14 @@
         { action: "Написанные акты", points: 250 }
     ];
 
-    // ----- СТРУКТУРА ДАННЫХ: действия для каждой фракции (количество выполненных действий за период) -----
-    // инициализация: для каждой фракции создаём объект с действиями (0 по умолчанию)
+    // ----- ДАННЫЕ -----
     let actionsData = {};
-    // данные по часам: для каждой фракции массив 7 дней (пн-вс)
     let hoursData = {};
-
-    // функция инициализации
+    
+    // Текущий режим: null = обычный, "super" = супер-админ, иначе название фракции
+    let currentEditMode = null;
+    
+    // Инициализация данных
     function initData() {
         for (let f of FACTIONS) {
             if (!actionsData[f]) {
@@ -367,10 +412,10 @@
                 }
             }
             if (!hoursData[f]) {
-                hoursData[f] = [0,0,0,0,0,0,0]; // пн..вс
+                hoursData[f] = [0,0,0,0,0,0,0];
             }
         }
-        // демо-данные для наглядности (некоторые фракции)
+        // Демо-данные
         if (actionsData["Правительство"]["ГМП"] === 0) {
             actionsData["Правительство"]["ГМП"] = 2;
             actionsData["Правительство"]["Пресс-новости"] = 3;
@@ -388,23 +433,16 @@
         }
     }
 
-    // Подсчёт итогового балла для фракции (0-100)
+    // Подсчёт итогового балла
     function calculateTotalScore(faction) {
         let actionPoints = 0;
         for (let act of PRICE_LIST) {
             let count = actionsData[faction]?.[act.action] || 0;
             actionPoints += count * act.points;
         }
-
-        // учёт часов: до 10 бонусных баллов (максимум 10 при 40+ часах в неделю)
         let hoursArr = hoursData[faction] || [0,0,0,0,0,0,0];
         let totalHours = hoursArr.reduce((a,b)=>a+b,0);
-        let hoursBonus = Math.min(10, totalHours / 5);  // примерно 50 часов = 10 баллов
-
-        let raw = actionPoints / 100 + hoursBonus;  // макс баллов ~ (макс действие ~ несколько тысяч/100) + 10
-        // приводим к шкале 0-100 (кап)
-        let maxPossibleFromActions = 0;
-        for (let act of PRICE_LIST) maxPossibleFromActions += 20 * act.points; // примерный потолок если по 20шт каждого
+        let hoursBonus = Math.min(10, totalHours / 5);
         let normalized = Math.min(100, (actionPoints / 2500) * 70 + hoursBonus);
         normalized = Math.min(100, Math.max(0, normalized));
         if (actionPoints === 0 && totalHours === 0) normalized = 0;
@@ -416,10 +454,16 @@
         if (score >= 75) return { name: "A", bonus: "+20%", color: "badge-silver" };
         if (score >= 50) return { name: "B", bonus: "0%", color: "badge-normal" };
         if (score >= 30) return { name: "C", bonus: "-30%", color: "badge-bronze" };
-        return { name: "D", bonus: "РОТАЦИЯ", color: "badge" };
+        return { name: "D", bonus: "РОТАЦИЯ", color: "badge-red" };
     }
 
-    // отрисовка рейтинга
+    // Проверка, может ли пользователь редактировать данную фракцию
+    function canEditFaction(factionName) {
+        if (currentEditMode === "super") return true;
+        return currentEditMode === factionName;
+    }
+
+    // Отрисовка рейтинга
     function renderRating() {
         let tbody = document.getElementById("ratingBody");
         tbody.innerHTML = "";
@@ -427,57 +471,69 @@
         scores.sort((a,b) => b.score - a.score);
         for (let item of scores) {
             let league = getLeague(item.score);
+            let canEdit = canEditFaction(item.name);
+            let editBtn = canEdit ? `<span class="save-icon edit-faction" data-faction="${item.name}">✏️ править</span>` : `<span style="color:#aaa; font-size:12px;">🔒</span>`;
             let row = `<tr>
                 <td><strong>${item.name}</strong></td>
                 <td class="score-number">${item.score.toFixed(1)}</td>
                 <td><span class="badge ${league.color}">${league.name}</span></td>
                 <td>${league.bonus}</td>
-                <td><span class="save-icon edit-faction" data-faction="${item.name}">✏️ править</span></td>
+                <td>${editBtn}</td>
             </tr>`;
             tbody.innerHTML += row;
         }
         document.querySelectorAll('.edit-faction').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                if (!isAdminMode) { alert("Только для админа. Войдите в админ-панель."); return; }
                 let f = btn.getAttribute('data-faction');
-                editFactionActions(f);
+                if (!canEditFaction(f)) {
+                    alert("❌ У вас нет прав для редактирования этой фракции. Войдите под своим паролем.");
+                    return;
+                }
+                alert(`Редактирование фракции "${f}"\nПерейдите во вкладку "Рейтинг" → детализация активности.\nТам можно менять количество действий.`);
             });
         });
     }
 
-    // таблица детализации действий
+    // Детализация действий
     function renderDetails() {
         let thead = document.getElementById("detailsHead");
         let tbody = document.getElementById("detailsBody");
         thead.innerHTML = `<tr><th>Фракция / Действие</th>${PRICE_LIST.map(p => `<th>${p.action}<br><span style="font-weight:normal">${p.points} баллов</span></th>`).join('')}<th>Часы (сумма)</th></tr>`;
         tbody.innerHTML = "";
         for (let f of FACTIONS) {
+            let canEdit = canEditFaction(f);
             let row = `<tr><td><strong>${f}</strong></td>`;
             for (let act of PRICE_LIST) {
                 let val = actionsData[f]?.[act.action] || 0;
-                let displayVal = isAdminMode ? `<input type="number" class="edit-action-input" data-faction="${f}" data-action="${act.action}" value="${val}" style="width:70px;padding:5px;border-radius:12px;">` : `<span class="display-val">${val}</span>`;
-                row += `<td>${displayVal}</td>`;
+                if (canEdit) {
+                    row += `<td><input type="number" class="edit-action-input" data-faction="${f}" data-action="${act.action}" value="${val}" style="width:70px;padding:5px;border-radius:12px;"></td>`;
+                } else {
+                    row += `<td>${val}</td>`;
+                }
             }
             let totalH = (hoursData[f] || [0,0,0,0,0,0,0]).reduce((a,b)=>a+b,0);
-            row += `<td>${totalH} ч</td></tr>`;
+            row += `<td>${totalH} ч</td>`;
+            row += `<tr>`;
             tbody.innerHTML += row;
         }
-        if (isAdminMode) {
+        if (currentEditMode !== null) {
             document.querySelectorAll('.edit-action-input').forEach(inp => {
                 inp.addEventListener('change', function() {
                     let faction = this.getAttribute('data-faction');
+                    if (!canEditFaction(faction)) return;
                     let action = this.getAttribute('data-action');
                     let newVal = parseInt(this.value) || 0;
                     if (actionsData[faction]) actionsData[faction][action] = newVal;
                     renderRating();
                     renderDetails();
                     renderHoursTable();
+                    saveToLocalStorage();
                 });
             });
         }
     }
 
-    // рендер часов
+    // Часы
     function renderHoursTable() {
         let thead = document.getElementById("hoursHead");
         let tbody = document.getElementById("hoursBody");
@@ -485,32 +541,32 @@
         tbody.innerHTML = "";
         for (let f of FACTIONS) {
             let hrs = hoursData[f] || [0,0,0,0,0,0,0];
-            let row = `<tr>`;
-            row += `<td><strong>${f}</strong></td>`;
+            let canEdit = canEditFaction(f);
+            let row = `<tr><td><strong>${f}</strong></td>`;
             for (let i=0; i<7; i++) {
                 let val = hrs[i];
-                if (isAdminMode) {
+                if (canEdit) {
                     row += `<td><input type="number" class="hour-input-day" data-faction="${f}" data-day="${i}" value="${val}" style="width:65px; padding:5px;border-radius:12px;"></td>`;
                 } else {
                     row += `<td>${val}</td>`;
                 }
             }
             let total = hrs.reduce((a,b)=>a+b,0);
-            row += `<td><b>${total}</b></td>`;
-            row += `<td>${isAdminMode ? '' : ''}</td>`;
-            row += `</tr>`;
+            row += `<td><b>${total}</b></td><td></td></tr>`;
             tbody.innerHTML += row;
         }
-        if (isAdminMode) {
+        if (currentEditMode !== null) {
             document.querySelectorAll('.hour-input-day').forEach(inp => {
                 inp.addEventListener('change', function() {
                     let faction = this.getAttribute('data-faction');
+                    if (!canEditFaction(faction)) return;
                     let day = parseInt(this.getAttribute('data-day'));
                     let newVal = parseInt(this.value) || 0;
                     if (hoursData[faction]) hoursData[faction][day] = newVal;
                     renderHoursTable();
                     renderRating();
                     renderDetails();
+                    saveToLocalStorage();
                 });
             });
         }
@@ -518,45 +574,72 @@
 
     function renderPriceList() {
         let container = document.getElementById("priceListContainer");
-        container.innerHTML = `<div class="table-wrapper"><table><thead><tr><th>Действие</th><th>Баллы (за 1 ед.)</th></tr></thead><tbody>${PRICE_LIST.map(p => `<tr><td>${p.action}</td><td>${p.points}</td></tr>`).join('')}</tbody></table></div><div class="footer-note">* Баллы суммируются: количество × цена действия</div>`;
+        container.innerHTML = `<div class="table-wrapper">${PRICE_LIST.map(p => `<div class="price-item"><strong>${p.action}</strong><span style="background:#f0f2f8; padding:4px 12px; border-radius:20px;">${p.points} баллов</span></div>`).join('')}</div><div class="footer-note">* Баллы суммируются: количество × цена действия</div>`;
     }
 
-    let isAdminMode = false;
-    function openAdminPanel() {
-        let pwd = prompt("Введите пароль администратора:");
-        if (pwd === "Ural2025") {
-            isAdminMode = true;
-            alert("Режим администратора активирован! Теперь можно редактировать данные.");
-            renderRating();
-            renderDetails();
-            renderHoursTable();
-        } else {
-            alert("Неверный пароль. Доступ запрещён.");
-        }
+    // Сохранение в localStorage
+    function saveToLocalStorage() {
+        localStorage.setItem("ura_actionsData", JSON.stringify(actionsData));
+        localStorage.setItem("ura_hoursData", JSON.stringify(hoursData));
     }
 
-    function editFactionActions(faction) {
-        alert(`Редактирование данных фракции "${faction}"\nПерейдите во вкладку "Рейтинг" → детализация активности, там можно менять количество действий.`);
+    function loadFromLocalStorage() {
+        let savedActions = localStorage.getItem("ura_actionsData");
+        let savedHours = localStorage.getItem("ura_hoursData");
+        if (savedActions) actionsData = JSON.parse(savedActions);
+        if (savedHours) hoursData = JSON.parse(savedHours);
+        initData(); // подстраховка
     }
 
-    function resetDemoData() {
-        if (!isAdminMode) { alert("Только админ может сбросить данные!"); return; }
-        for (let f of FACTIONS) {
-            for (let act of PRICE_LIST) {
-                actionsData[f][act.action] = 0;
-            }
-            hoursData[f] = [0,0,0,0,0,0,0];
-        }
-        // демо-маркер
-        actionsData["Правительство"]["ГМП"] = 1;
-        actionsData["Правительство"]["Пресс-новости"] = 2;
+    // Выход из режима редактирования
+    function logoutEditMode() {
+        currentEditMode = null;
+        document.getElementById("editIndicator").style.display = "none";
         renderRating();
         renderDetails();
         renderHoursTable();
-        alert("Данные сброшены до минимальных.");
     }
 
-    // ----- TAB LOGIC -----
+    // Вход во фракцию
+    function loginToFaction(factionName, password) {
+        if (password === SUPER_ADMIN_PASSWORD) {
+            currentEditMode = "super";
+            document.getElementById("editIndicator").style.display = "flex";
+            document.getElementById("editingFactionName").innerText = "СУПЕР-АДМИН (все фракции)";
+            document.getElementById("adminModal").style.display = "none";
+            renderRating();
+            renderDetails();
+            renderHoursTable();
+            return true;
+        }
+        
+        let expectedPassword = FACTION_PASSWORDS[factionName];
+        if (expectedPassword && password === expectedPassword) {
+            currentEditMode = factionName;
+            document.getElementById("editIndicator").style.display = "flex";
+            document.getElementById("editingFactionName").innerText = factionName;
+            document.getElementById("adminModal").style.display = "none";
+            renderRating();
+            renderDetails();
+            renderHoursTable();
+            return true;
+        }
+        return false;
+    }
+
+    // Заполнение select фракций
+    function fillFactionSelect() {
+        let select = document.getElementById("factionSelect");
+        select.innerHTML = '<option value="">-- Выберите фракцию --</option>';
+        for (let f of FACTIONS) {
+            let option = document.createElement("option");
+            option.value = f;
+            option.textContent = f;
+            select.appendChild(option);
+        }
+    }
+
+    // TAB logic
     const tabs = document.querySelectorAll('.tab-btn');
     const contents = document.querySelectorAll('.tab-content');
     tabs.forEach(btn => {
@@ -569,23 +652,52 @@
         });
     });
 
-    document.getElementById('adminBtn').addEventListener('click', openAdminPanel);
-    document.getElementById('closeAdmin').addEventListener('click', () => {
-        document.getElementById('adminModal').style.display = 'none';
+    // Модалка
+    const adminModal = document.getElementById("adminModal");
+    document.getElementById("adminBtn").addEventListener("click", () => {
+        adminModal.style.display = "flex";
+        document.getElementById("factionPassword").value = "";
+        document.getElementById("wrongPasswordMsg").style.display = "none";
     });
-    document.getElementById('resetData').addEventListener('click', resetDemoData);
+    document.getElementById("closeAdmin").addEventListener("click", () => {
+        adminModal.style.display = "none";
+    });
+    document.getElementById("loginFactionBtn").addEventListener("click", () => {
+        let faction = document.getElementById("factionSelect").value;
+        let password = document.getElementById("factionPassword").value;
+        if (!faction) {
+            alert("Выберите фракцию");
+            return;
+        }
+        if (loginToFaction(faction, password)) {
+            // успех
+        } else {
+            document.getElementById("wrongPasswordMsg").style.display = "block";
+        }
+    });
+    
+    // Клик вне модалки для закрытия
+    window.onclick = function(event) {
+        if (event.target === adminModal) {
+            adminModal.style.display = "none";
+        }
+    }
 
-    // init
+    // Индикатор кликабельный для выхода
+    document.getElementById("editIndicator").addEventListener("click", () => {
+        if (confirm("Выйти из режима редактирования?")) {
+            logoutEditMode();
+        }
+    });
+
+    // Инициализация
+    loadFromLocalStorage();
     initData();
+    fillFactionSelect();
     renderPriceList();
     renderRating();
     renderDetails();
     renderHoursTable();
-
-    // доп стили для табов
-    const style = document.createElement('style');
-    style.textContent = `.tab-content { display: none; } .tab-content.active { display: block; }`;
-    document.head.appendChild(style);
 </script>
 </body>
 </html>
