@@ -87,7 +87,10 @@
         }
         .btn-primary { background: var(--accent); border-color: var(--accent); color: #0c0f18; font-weight: 600; }
         .btn-danger { background: rgba(220,70,70,0.2); border-color: rgba(255,100,100,0.3); }
+        .btn-success { background: rgba(64,199,133,0.2); border-color: var(--green); color: var(--green); }
         .user-chip { background: rgba(0,0,0,0.45); border-radius: 60px; padding: 5px 16px; border-left: 2px solid var(--accent); }
+        .icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 8px; }
+        .icon-btn:hover { background: rgba(255,255,255,0.1); }
 
         .page { display: none; }
         .page.active { display: block; }
@@ -129,7 +132,7 @@
 
         .price-grid, .gov-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 10px;
         }
         .price-item, .gov-card {
@@ -141,10 +144,14 @@
             align-items: center;
             border: 1px solid var(--line);
         }
-        .price-value { font-weight: 700; color: var(--green); }
-        .gov-card { flex-direction: column; align-items: start; gap: 6px; }
+        .price-info { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+        .price-name { font-weight: 600; }
+        .price-value { font-weight: 700; color: var(--green); font-size: 0.9rem; }
+        .price-actions, .gov-actions { display: flex; gap: 5px; }
+        .gov-card { flex-direction: column; align-items: stretch; }
+        .gov-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .gov-name { font-weight: 600; }
-        .gov-leader { font-size: 0.8rem; color: var(--muted); }
+        .gov-leader { font-size: 0.8rem; color: var(--muted); margin-top: 5px; }
 
         .table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -189,8 +196,6 @@
         .status-pending { background: rgba(245,158,66,0.2); color: var(--orange); }
         .status-approved { background: rgba(64,199,133,0.2); color: var(--green); }
         .status-rejected { background: rgba(255,107,107,0.2); color: var(--red); }
-        .admin-table { margin-bottom: 30px; }
-        .admin-table h3 { margin-bottom: 15px; color: var(--accent); font-size: 1.2rem; }
 
         .modal {
             display: none;
@@ -253,9 +258,26 @@
             <div class="stat-card"><div class="stat-label">🕐 Последнее изменение</div><div class="stat-value" id="lastChange" style="font-size:1.2rem;">—</div></div>
         </div>
 
-        <div class="card"><div class="card-header"><h2>💰 Прайс-лист</h2><button id="editPriceBtn" class="btn" style="display:none;">✏️</button></div><div class="price-grid" id="priceGrid"></div></div>
-        <div class="card"><div class="card-header"><h2>🏛️ Государственные структуры</h2><button id="editGovBtn" class="btn" style="display:none;">✏️</button></div><div class="gov-grid" id="govGrid"></div></div>
-        <div class="card"><div class="card-header"><h2>📊 Рейтинг эффективности</h2></div><div class="table-wrapper"><table id="ratingTable"><thead><tr><th>Фракция / Лидер</th><th>ГМП</th><th>МП</th><th>Поставки</th><th>Пресс</th><th>Заявки</th><th>Выговоры</th><th>Выезды адв.</th><th>Акты</th><th>ИТОГО</th></tr></thead><tbody id="ratingBody"></tbody></table></div></div>
+        <div class="card">
+            <div class="card-header">
+                <h2>💰 Прайс-лист</h2>
+                <div><button id="addPriceBtn" class="btn btn-success" style="display:none;">➕ Добавить пункт</button></div>
+            </div>
+            <div class="price-grid" id="priceGrid"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>🏛️ Государственные структуры</h2>
+                <div><button id="addGovBtn" class="btn btn-success" style="display:none;">➕ Добавить структуру</button></div>
+            </div>
+            <div class="gov-grid" id="govGrid"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h2>📊 Рейтинг эффективности</h2></div>
+            <div class="table-wrapper"><table id="ratingTable"><thead><tr><th>Фракция / Лидер</th><th id="ratingHeaders"></th><th>ИТОГО</th></tr></thead><tbody id="ratingBody"></tbody></table></div>
+        </div>
     </div>
 
     <!-- СТРАНИЦА 2: ЧАСЫ ЛИДЕРОВ -->
@@ -291,6 +313,8 @@
 <div id="registerModal" class="modal"><div class="modal-content"><h3>📝 Регистрация</h3><select id="regFaction"></select><input type="text" id="regLogin" placeholder="Логин"><input type="email" id="regEmail" placeholder="Почта"><input type="password" id="regPass" placeholder="Пароль"><button id="doRegister" class="btn btn-primary">Зарегистрироваться</button><button class="btn closeModal">Отмена</button></div></div>
 <div id="loginModal" class="modal"><div class="modal-content"><h3>🔐 Вход</h3><input type="text" id="loginUser" placeholder="Логин"><input type="password" id="loginPassword" placeholder="Пароль"><button id="doLogin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
 <div id="adminModal" class="modal"><div class="modal-content"><h3>👑 Админ</h3><input type="text" id="adminUser" value="admin"><input type="password" id="adminPass" placeholder="Пароль"><button id="doAdmin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
+<div id="addPriceModal" class="modal"><div class="modal-content"><h3>➕ Добавить пункт прайс-листа</h3><input type="text" id="newPriceName" placeholder="Название"><input type="number" id="newPriceValue" placeholder="Стоимость (баллы)"><button id="confirmAddPrice" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
+<div id="addGovModal" class="modal"><div class="modal-content"><h3>➕ Добавить госструктуру</h3><input type="text" id="newGovName" placeholder="Название структуры"><input type="text" id="newGovLeader" placeholder="Имя лидера"><button id="confirmAddGov" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
 
 <script>
     async function hashPassword(p) {
@@ -300,21 +324,31 @@
         return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
 
-    const factions = [
-        { name: "Правительство", leader: "Северный Валентин Владимирович" },
-        { name: "Адвокатура", leader: "Нету" },
-        { name: "Генеральная прокуратура", leader: "Сергеев Василий Александрович" },
-        { name: "Прокуратура субъекта", leader: "Нету" },
-        { name: "Следственный комитет", leader: "—" },
-        { name: "Уральск ЛАЙВ", leader: "Асия Петроградская" },
-        { name: "ГИБДД", leader: "—" }, { name: "ГКБ", leader: "—" }, { name: "ВС РФ", leader: "—" },
-        { name: "МВД", leader: "—" }, { name: "ФСБ", leader: "—" }
+    // Динамические данные
+    let priceItems = [
+        { id: "gmp", name: "ГМП", value: 250 },
+        { id: "mp", name: "МП", value: 150 },
+        { id: "supply", name: "Участие в поставках", value: 250 },
+        { id: "press", name: "Пресс-новости", value: 190 },
+        { id: "apps", name: "Принятые заявки", value: 150 },
+        { id: "repr", name: "Выговоры", value: 90 },
+        { id: "lawyer", name: "Выезды адвокатов", value: 250 },
+        { id: "acts", name: "Написанные акты", value: 250 }
     ];
 
-    let priceList = { gmp:250, mp:150, supply:250, press:190, apps:150, repr:90, lawyer:250, acts:250 };
-    const priceNames = { gmp:"ГМП", mp:"МП", supply:"Поставки", press:"Пресс", apps:"Заявки", repr:"Выговоры", lawyer:"Выезды адв.", acts:"Акты" };
-    const fields = ["gmp","mp","supply","press","apps","repr","lawyer","acts"];
-    const fieldRus = { gmp:"ГМП", mp:"МП", supply:"Поставки", press:"Пресс", apps:"Заявки", repr:"Выговоры", lawyer:"Выезды адв.", acts:"Акты" };
+    let factions = [
+        { id: "gov1", name: "Правительство", leader: "Северный Валентин Владимирович" },
+        { id: "gov2", name: "Адвокатура", leader: "Нету" },
+        { id: "gov3", name: "Генеральная прокуратура", leader: "Сергеев Василий Александрович" },
+        { id: "gov4", name: "Прокуратура субъекта", leader: "Нету" },
+        { id: "gov5", name: "Следственный комитет", leader: "—" },
+        { id: "gov6", name: "Уральск ЛАЙВ", leader: "Асия Петроградская" },
+        { id: "gov7", name: "ГИБДД", leader: "—" },
+        { id: "gov8", name: "ГКБ", leader: "—" },
+        { id: "gov9", name: "ВС РФ", leader: "—" },
+        { id: "gov10", name: "МВД", leader: "—" },
+        { id: "gov11", name: "ФСБ", leader: "—" }
+    ];
 
     let stats = {}, users = {}, currentUser = null, lastChangeTimestamp = Date.now(), hourNorm = 40;
     let hoursData = {}, reasonsData = {};
@@ -332,7 +366,8 @@
         try {
             let s = localStorage.getItem("ural_stats"); if(s) stats = JSON.parse(s);
             let u = localStorage.getItem("ural_users"); if(u) users = JSON.parse(u);
-            let p = localStorage.getItem("ural_price"); if(p) priceList = JSON.parse(p);
+            let pi = localStorage.getItem("ural_price_items"); if(pi) priceItems = JSON.parse(pi);
+            let fc = localStorage.getItem("ural_factions"); if(fc) factions = JSON.parse(fc);
             let t = localStorage.getItem("ural_lastchange"); if(t) lastChangeTimestamp = parseInt(t);
             let hn = localStorage.getItem("ural_hournorm"); if(hn) hourNorm = parseInt(hn);
             let hd = localStorage.getItem("ural_hours"); if(hd) hoursData = JSON.parse(hd);
@@ -347,7 +382,8 @@
             }
         } catch(e) {}
         for(let i=0;i<factions.length;i++) {
-            if(!stats[i]) stats[i] = { gmp:0, mp:0, supply:0, press:0, apps:0, repr:0, lawyer:0, acts:0 };
+            if(!stats[i]) stats[i] = {};
+            for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
             if(!hoursData[i]) hoursData[i] = {};
             if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
         }
@@ -355,7 +391,8 @@
     function saveAll() {
         localStorage.setItem("ural_stats", JSON.stringify(stats));
         localStorage.setItem("ural_users", JSON.stringify(users));
-        localStorage.setItem("ural_price", JSON.stringify(priceList));
+        localStorage.setItem("ural_price_items", JSON.stringify(priceItems));
+        localStorage.setItem("ural_factions", JSON.stringify(factions));
         localStorage.setItem("ural_lastchange", lastChangeTimestamp);
         localStorage.setItem("ural_hournorm", hourNorm);
         localStorage.setItem("ural_hours", JSON.stringify(hoursData));
@@ -367,8 +404,8 @@
         else localStorage.removeItem("ural_session");
     }
 
-    function calcTotal(s) { let pos = s.gmp*priceList.gmp + s.mp*priceList.mp + s.supply*priceList.supply + s.press*priceList.press + s.apps*priceList.apps + s.lawyer*priceList.lawyer + s.acts*priceList.acts; return pos - (s.repr * priceList.repr); }
-    function calcPositive(s) { return s.gmp*priceList.gmp + s.mp*priceList.mp + s.supply*priceList.supply + s.press*priceList.press + s.apps*priceList.apps + s.lawyer*priceList.lawyer + s.acts*priceList.acts; }
+    function calcTotal(s) { let total = 0; for(let p of priceItems) { let val = s[p.id] || 0; if(p.id === "repr") total -= val * p.value; else total += val * p.value; } return total; }
+    function calcPositive(s) { let total = 0; for(let p of priceItems) { if(p.id !== "repr") total += (s[p.id]||0) * p.value; } return total; }
 
     function renderMain() {
         let best=-Infinity, bestN="—", rep=0, pos=0;
@@ -379,39 +416,60 @@
         document.getElementById("positivePoints").innerText=pos;
         document.getElementById("lastChange").innerHTML=lastChangeTimestamp>0?new Date(lastChangeTimestamp).toLocaleString():"—";
         const isAdmin=currentUser?.type==="admin";
+        
+        // Прайс-лист
         const priceGrid=document.getElementById("priceGrid"); priceGrid.innerHTML="";
-        for(let [k,n] of Object.entries(priceNames)){
+        for(let p of priceItems){
             let div=document.createElement("div"); div.className="price-item";
             if(isAdmin){
-                div.innerHTML=`<span>${n}</span><input type="number" value="${priceList[k]}" style="width:70px">`;
-                div.querySelector("input").onchange=(e)=>{ let old=priceList[k]; priceList[k]=Math.max(0,parseInt(e.target.value)||0); saveAll(); addFullLog("Изменение прайса","система",`${n}: ${old}→${priceList[k]}`); renderMain(); };
-            } else { div.innerHTML=`<span>${n}</span><span class="price-value">${priceList[k]} баллов</span>`; }
+                div.innerHTML=`<div class="price-info"><input type="text" value="${escapeHtml(p.name)}" style="width:140px" class="price-name-edit" data-id="${p.id}"><input type="number" value="${p.value}" style="width:80px" class="price-value-edit" data-id="${p.id}"></div><div class="price-actions"><button class="icon-btn save-price" data-id="${p.id}">💾</button><button class="icon-btn delete-price" data-id="${p.id}">🗑️</button></div>`;
+                let nameInput=div.querySelector(`.price-name-edit[data-id="${p.id}"]`);
+                let valInput=div.querySelector(`.price-value-edit[data-id="${p.id}"]`);
+                div.querySelector(".save-price").onclick=()=>{ let oldN=p.name, oldV=p.value; p.name=nameInput.value; p.value=Math.max(0,parseInt(valInput.value)||0); saveAll(); addFullLog("Редактирование прайса","система",`${oldN}: ${oldV}→${p.value}`); renderMain(); renderHours(); };
+                div.querySelector(".delete-price").onclick=()=>{ if(confirm(`Удалить "${p.name}"?`)){ priceItems=priceItems.filter(x=>x.id!==p.id); saveAll(); addFullLog("Удаление пункта прайса","система",p.name); renderMain(); renderHours(); } };
+            } else {
+                div.innerHTML=`<div class="price-info"><span class="price-name">${escapeHtml(p.name)}</span><span class="price-value">${p.value} баллов</span></div>`;
+            }
             priceGrid.appendChild(div);
         }
+        
+        // Госструктуры
         const govGrid=document.getElementById("govGrid"); govGrid.innerHTML="";
         factions.forEach((f,idx)=>{
             let card=document.createElement("div"); card.className="gov-card";
             if(isAdmin){
-                card.innerHTML=`<div class="gov-name">${f.name}</div><input type="text" value="${escapeHtml(f.leader)}" style="width:100%">`;
-                card.querySelector("input").onchange=(e)=>{ let old=factions[idx].leader; factions[idx].leader=e.target.value; saveAll(); addFullLog("Изменение лидера",f.name,`${old}→${e.target.value}`); renderMain(); };
-            } else { card.innerHTML=`<div class="gov-name">${f.name}</div><div class="gov-leader">👤 ${f.leader}</div>`; }
+                card.innerHTML=`<div class="gov-info"><input type="text" value="${escapeHtml(f.name)}" style="flex:1" id="govName_${idx}"><div class="gov-actions"><button class="icon-btn save-gov" data-idx="${idx}">💾</button><button class="icon-btn delete-gov" data-idx="${idx}">🗑️</button></div></div><input type="text" value="${escapeHtml(f.leader)}" placeholder="Лидер" id="govLeader_${idx}">`;
+                card.querySelector(".save-gov").onclick=()=>{ let oldN=f.name, oldL=f.leader; f.name=document.getElementById(`govName_${idx}`).value; f.leader=document.getElementById(`govLeader_${idx}`).value; saveAll(); addFullLog("Редактирование структуры",f.name,`${oldN}→${f.name}, лидер: ${oldL}→${f.leader}`); renderMain(); renderHours(); };
+                card.querySelector(".delete-gov").onclick=()=>{ if(confirm(`Удалить "${f.name}"?`)){ factions.splice(idx,1); saveAll(); addFullLog("Удаление структуры","система",f.name); renderMain(); renderHours(); } };
+            } else {
+                card.innerHTML=`<div class="gov-info"><span class="gov-name">${escapeHtml(f.name)}</span></div><div class="gov-leader">👤 ${escapeHtml(f.leader)}</div>`;
+            }
             govGrid.appendChild(card);
         });
+        
+        // Таблица рейтинга
+        let theadRow=document.querySelector("#ratingTable thead tr");
+        theadRow.innerHTML='<th>Фракция / Лидер</th>';
+        for(let p of priceItems) theadRow.innerHTML+=`<th>${escapeHtml(p.name)}</th>`;
+        theadRow.innerHTML+='<th>ИТОГО</th>';
+        
         let tbody=document.getElementById("ratingBody"); tbody.innerHTML="";
         for(let i=0;i<factions.length;i++){
             let canEdit=isAdmin||(currentUser?.type==="leader"&&currentUser.factionIndex===i);
-            let s=stats[i]; let total=calcTotal(s);
+            let s=stats[i]||{}; let total=calcTotal(s);
             let row=tbody.insertRow();
-            row.insertCell(0).innerHTML=`<strong>${factions[i].name}</strong><br><span style="font-size:0.7rem;">👑 ${factions[i].leader}</span>`;
-            for(let f of fields){
+            row.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong><br><span style="font-size:0.7rem;">👑 ${escapeHtml(factions[i].leader)}</span>`;
+            for(let p of priceItems){
                 let td=row.insertCell();
-                let inp=document.createElement("input"); inp.type="number"; inp.value=s[f];
+                let inp=document.createElement("input"); inp.type="number"; inp.value=s[p.id]||0;
                 if(!canEdit) inp.disabled=true;
-                inp.onchange=((idx,fld)=>(e)=>{ if(canEdit){ let old=stats[idx][fld]; let nv=Math.max(0,parseInt(e.target.value)||0); stats[idx][fld]=nv; lastChangeTimestamp=Date.now(); saveAll(); addRatingLog(currentUser?.login||"admin",factions[idx].name,fieldRus[fld],old,nv); addFullLog("Изменение рейтинга",factions[idx].name,`${fieldRus[fld]}: ${old}→${nv}`); renderMain(); }})(i,f);
+                inp.onchange=((idx,pid)=>(e)=>{ if(canEdit){ let old=stats[idx][pid]||0; let nv=Math.max(0,parseInt(e.target.value)||0); stats[idx][pid]=nv; lastChangeTimestamp=Date.now(); saveAll(); addRatingLog(currentUser?.login||"admin",factions[idx].name,p.name,old,nv); addFullLog("Изменение рейтинга",factions[idx].name,`${p.name}: ${old}→${nv}`); renderMain(); }})(i,p.id);
                 td.appendChild(inp);
             }
             let tdTotal=row.insertCell(); tdTotal.className="total-cell"; tdTotal.innerText=total;
         }
+        document.getElementById("addPriceBtn").style.display=isAdmin?"inline-block":"none";
+        document.getElementById("addGovBtn").style.display=isAdmin?"inline-block":"none";
     }
 
     function renderHours() {
@@ -429,7 +487,7 @@
             const uh=hoursData[i]||{};
             let total=0;
             let row=hb.insertRow();
-            row.insertCell(0).innerHTML=`<strong>${factions[i].name}</strong><br><span style="font-size:0.7rem;">👑 ${factions[i].leader}</span>`;
+            row.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong><br><span style="font-size:0.7rem;">👑 ${escapeHtml(factions[i].leader)}</span>`;
             for(let d=0;d<7;d++){
                 let td=row.insertCell();
                 let date=weekDates[d];
@@ -444,13 +502,13 @@
             row.insertCell(2).innerHTML=`<span style="color:${total>=hourNorm?'var(--green)':'var(--orange)'}">${total>=hourNorm?"✅ Выполнена":"❌ Не выполнена"}</span>`;
             let reason=reasonsData[i]||{};
             let rrow=rb.insertRow();
-            rrow.insertCell(0).innerHTML=`<strong>${factions[i].name}</strong>`;
+            rrow.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong>`;
             let rt=rrow.insertCell(1);
             if(canEdit){
                 let ta=document.createElement("textarea"); ta.rows=2; ta.placeholder="Причина..."; ta.value=reason.text||"";
                 ta.onchange=((idx)=>(e)=>{ let old=reasonsData[idx].text||""; reasonsData[idx].text=e.target.value; saveAll(); addFullLog("Изменение причины",factions[idx].name,`${old}→${e.target.value}`); renderHours(); })(i);
                 rt.appendChild(ta);
-            } else { rt.innerHTML=`<div style="color:var(--muted);">${reason.text||"—"}</div>`; }
+            } else { rt.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.text)||"—"}</div>`; }
             let st=rrow.insertCell(2);
             if(isAdmin){
                 let sel=document.createElement("select");
@@ -467,7 +525,7 @@
                 let inp=document.createElement("input"); inp.type="text"; inp.placeholder="Комментарий..."; inp.value=reason.adminComment||""; inp.style.width="100%";
                 inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveAll(); addFullLog("Комментарий админа",factions[idx].name,e.target.value); renderHours(); })(i);
                 ct.appendChild(inp);
-            } else { ct.innerHTML=`<div style="color:var(--muted);">${reason.adminComment||"—"}</div>`; }
+            } else { ct.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.adminComment)||"—"}</div>`; }
         }
         let normInp=document.getElementById("hourNorm");
         normInp.value=hourNorm; normInp.disabled=!isAdmin;
@@ -497,8 +555,6 @@
         document.getElementById("authButtons").style.display=currentUser?"none":"flex";
         document.getElementById("userInfoArea").style.display=currentUser?"flex":"none";
         document.getElementById("logoutBtn").style.display=currentUser?"block":"none";
-        document.getElementById("editPriceBtn").style.display=isAdmin?"inline-block":"none";
-        document.getElementById("editGovBtn").style.display=isAdmin?"inline-block":"none";
         document.getElementById("adminTabBtn").style.display=isAdmin?"inline-block":"none";
         document.getElementById("adminFooter").style.display=isAdmin?"block":"none";
         if(currentUser){
@@ -515,7 +571,7 @@
         if(!/^[a-zA-Z0-9_]{3,20}$/.test(login)) return "Логин: 3-20 букв, цифр, _";
         if(!/^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/.test(email)) return "Неверная почта";
         if(users[login]) return "Логин занят";
-        if(factionIdx===undefined||factionIdx<0) return "Выберите фракцию";
+        if(factionIdx===undefined||factionIdx<0||factionIdx>=factions.length) return "Выберите фракцию";
         let hash=await hashPassword(pass);
         users[login]={passwordHash:hash,email,factionIndex:factionIdx,login};
         userRegDate[login]=new Date().toLocaleString();
@@ -572,12 +628,48 @@
         });
         document.getElementById("prevWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()-7); renderHours(); };
         document.getElementById("nextWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()+7); renderHours(); };
-        document.getElementById("editPriceBtn").onclick=()=>alert("Измените цифры в блоке прайса");
-        document.getElementById("editGovBtn").onclick=()=>alert("Имена лидеров меняются в карточках");
+        document.getElementById("editPriceBtn")?.setAttribute("style","display:none");
+        document.getElementById("editGovBtn")?.setAttribute("style","display:none");
         document.getElementById("editNormBtn").onclick=()=>alert("Измените норму в поле выше");
         document.getElementById("clearRatingLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить историю изменений?")){ ratingChangeLogs=[]; saveAll(); renderAdmin(); } });
         document.getElementById("clearAccountsBtn")?.addEventListener("click",()=>{ if(confirm("Удалить всех пользователей?")){ users={}; userRegDate={}; saveAll(); renderAdmin(); } });
         document.getElementById("clearFullLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить логи?")){ fullAuditLogs=[]; saveAll(); renderAdmin(); } });
+        
+        // Добавление прайса
+        document.getElementById("addPriceBtn").onclick=()=>{ document.getElementById("addPriceModal").classList.add("active"); };
+        document.getElementById("confirmAddPrice").onclick=()=>{
+            let name=document.getElementById("newPriceName").value.trim();
+            let val=parseInt(document.getElementById("newPriceValue").value)||0;
+            if(!name){ alert("Введите название"); return; }
+            let newId="custom_"+Date.now()+"_"+Math.random().toString(36).substr(2,5);
+            priceItems.push({ id:newId, name:name, value:Math.max(0,val) });
+            for(let i=0;i<factions.length;i++) if(!stats[i][newId]) stats[i][newId]=0;
+            saveAll(); addFullLog("Добавление пункта прайса","система",`${name}: ${val}`);
+            document.getElementById("addPriceModal").classList.remove("active");
+            document.getElementById("newPriceName").value="";
+            document.getElementById("newPriceValue").value="";
+            renderMain(); renderHours();
+        };
+        
+        // Добавление госструктуры
+        document.getElementById("addGovBtn").onclick=()=>{ document.getElementById("addGovModal").classList.add("active"); };
+        document.getElementById("confirmAddGov").onclick=()=>{
+            let name=document.getElementById("newGovName").value.trim();
+            let leader=document.getElementById("newGovLeader").value.trim() || "—";
+            if(!name){ alert("Введите название"); return; }
+            let newId="gov_"+Date.now()+"_"+Math.random().toString(36).substr(2,5);
+            factions.push({ id:newId, name:name, leader:leader });
+            let newIdx=factions.length-1;
+            stats[newIdx]={};
+            for(let p of priceItems) stats[newIdx][p.id]=0;
+            hoursData[newIdx]={};
+            reasonsData[newIdx]={ text:"", status:"pending", adminComment:"" };
+            saveAll(); addFullLog("Добавление структуры","система",`${name} (лидер: ${leader})`);
+            document.getElementById("addGovModal").classList.remove("active");
+            document.getElementById("newGovName").value="";
+            document.getElementById("newGovLeader").value="";
+            renderMain(); renderHours();
+        };
     }
 
     loadData();
