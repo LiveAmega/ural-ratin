@@ -89,8 +89,10 @@
         .btn-danger { background: rgba(220,70,70,0.2); border-color: rgba(255,100,100,0.3); }
         .btn-success { background: rgba(64,199,133,0.2); border-color: var(--green); color: var(--green); }
         .user-chip { background: rgba(0,0,0,0.45); border-radius: 60px; padding: 5px 16px; border-left: 2px solid var(--accent); }
-        .icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 8px; }
-        .icon-btn:hover { background: rgba(255,255,255,0.1); }
+        .sync-status { font-size: 0.7rem; padding: 4px 12px; border-radius: 20px; background: rgba(0,0,0,0.3); }
+        .sync-status.synced { color: var(--green); }
+        .sync-status.syncing { color: var(--orange); }
+        .sync-status.error { color: var(--red); }
 
         .page { display: none; }
         .page.active { display: block; }
@@ -132,26 +134,23 @@
 
         .price-grid, .gov-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 10px;
         }
         .price-item, .gov-card {
             background: var(--surface-strong);
             border-radius: var(--radius-md);
             padding: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             border: 1px solid var(--line);
         }
-        .price-info { display: flex; flex-direction: column; gap: 5px; flex: 1; }
-        .price-name { font-weight: 600; }
-        .price-value { font-weight: 700; color: var(--green); font-size: 0.9rem; }
-        .price-actions, .gov-actions { display: flex; gap: 5px; }
-        .gov-card { flex-direction: column; align-items: stretch; }
-        .gov-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .gov-name { font-weight: 600; }
-        .gov-leader { font-size: 0.8rem; color: var(--muted); margin-top: 5px; }
+        .price-info { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .price-name { font-weight: 600; flex: 1; }
+        .price-value { font-weight: 700; color: var(--green); }
+        .price-actions, .gov-actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+        .gov-card { display: flex; flex-direction: column; gap: 8px; }
+        .gov-name { font-weight: 600; font-size: 1rem; }
+        .gov-leader { font-size: 0.8rem; color: var(--muted); }
+        .gov-edit-input { background: #0f121d; border: 1px solid var(--line); border-radius: 8px; padding: 6px; color: var(--text); width: 100%; }
 
         .table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -247,6 +246,7 @@
         </div>
         <div id="userInfoArea" style="display: none;" class="user-chip"></div>
         <button id="logoutBtn" class="btn btn-danger" style="display:none;">Выйти</button>
+        <div id="syncStatus" class="sync-status synced">✅ Синхронизировано</div>
     </div>
 
     <!-- СТРАНИЦА 1: РЕЙТИНГ -->
@@ -261,7 +261,7 @@
         <div class="card">
             <div class="card-header">
                 <h2>💰 Прайс-лист</h2>
-                <div><button id="addPriceBtn" class="btn btn-success" style="display:none;">➕ Добавить пункт</button></div>
+                <button id="addPriceBtn" class="btn btn-success" style="display:none;">➕ Добавить пункт</button>
             </div>
             <div class="price-grid" id="priceGrid"></div>
         </div>
@@ -269,14 +269,14 @@
         <div class="card">
             <div class="card-header">
                 <h2>🏛️ Государственные структуры</h2>
-                <div><button id="addGovBtn" class="btn btn-success" style="display:none;">➕ Добавить структуру</button></div>
+                <button id="addGovBtn" class="btn btn-success" style="display:none;">➕ Добавить структуру</button>
             </div>
             <div class="gov-grid" id="govGrid"></div>
         </div>
 
         <div class="card">
             <div class="card-header"><h2>📊 Рейтинг эффективности</h2></div>
-            <div class="table-wrapper"><table id="ratingTable"><thead><tr><th>Фракция / Лидер</th><th id="ratingHeaders"></th><th>ИТОГО</th></tr></thead><tbody id="ratingBody"></tbody></table></div>
+            <div class="table-wrapper"><table id="ratingTable"><thead><tr><th>Фракция / Лидер</th><th id="ratingHeaders"></th><th>ИТОГО</th></tr></thead><tbody id="ratingBody"></tbody><tr></div>
         </div>
     </div>
 
@@ -287,7 +287,8 @@
             <div class="date-nav"><button id="prevWeekBtn">◀ Пред. неделя</button><span id="currentWeekRange" style="font-weight:bold;"></span><button id="nextWeekBtn">След. неделя ▶</button></div>
             <div class="table-wrapper"><table id="hoursTable"><thead><tr><th>Фракция / Лидер</th><th id="day0"></th><th id="day1"></th><th id="day2"></th><th id="day3"></th><th id="day4"></th><th id="day5"></th><th id="day6"></th><th>Итого</th><th>Статус</th></tr></thead><tbody id="hoursBody"></tbody></table></div>
         </div>
-        <div class="card"><div class="card-header"><h2>📝 Причины невыполнения нормы</h2></div><div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody id="reasonsBody"></tbody></table></div></div>
+        <div class="card"><div class="card-header"><h2>📝 Причины невыполнения нормы</h2></div><div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody id="reasonsBody"></tbody></tr></div>
+        </div>
     </div>
 
     <!-- СТРАНИЦА 3: АДМИН-ПАНЕЛЬ -->
@@ -317,6 +318,15 @@
 <div id="addGovModal" class="modal"><div class="modal-content"><h3>➕ Добавить госструктуру</h3><input type="text" id="newGovName" placeholder="Название структуры"><input type="text" id="newGovLeader" placeholder="Имя лидера"><button id="confirmAddGov" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
 
 <script>
+    // ========== НАСТРОЙКИ СИНХРОНИЗАЦИИ ==========
+    // ЗАМЕНИТЕ ЭТУ ССЫЛКУ НА ВАШУ ИЗ GOOGLE APPS SCRIPT!
+    const SCRIPT_URL = "https://docs.google.com/spreadsheets/d/1lukd0lKm1SzDsidPVohaD9s8EUSJWC4DnTyeo2IzRyE/edit?usp=sharing";
+    
+    let syncTimer = null;
+    let isSyncing = false;
+    let pendingSync = false;
+    let lastSyncData = null;
+
     async function hashPassword(p) {
         const encoder = new TextEncoder();
         const data = encoder.encode(p);
@@ -359,49 +369,96 @@
     function getWeekDates(start) { let d=[]; for(let i=0;i<7;i++){ let n=new Date(start); n.setDate(start.getDate()+i); d.push(n.toISOString().slice(0,10)); } return d; }
     function formatDateRange(s){ let e=new Date(s); e.setDate(s.getDate()+6); return `${s.toLocaleDateString()} - ${e.toLocaleDateString()}`; }
 
-    function addRatingLog(user, faction, field, oldV, newV) { ratingChangeLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user, faction, field, oldVal:oldV, newVal:newV }); if(ratingChangeLogs.length>500) ratingChangeLogs.pop(); saveAll(); }
-    function addFullLog(action, faction, details) { let userName = currentUser?.type==="admin"?"admin":(currentUser?.login||"гость"); fullAuditLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user:userName, faction:faction||"система", action, details:details||"" }); if(fullAuditLogs.length>500) fullAuditLogs.pop(); saveAll(); }
+    function addRatingLog(user, faction, field, oldV, newV) { ratingChangeLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user, faction, field, oldVal:oldV, newVal:newV }); if(ratingChangeLogs.length>500) ratingChangeLogs.pop(); saveToCloud(); }
+    function addFullLog(action, faction, details) { let userName = currentUser?.type==="admin"?"admin":(currentUser?.login||"гость"); fullAuditLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user:userName, faction:faction||"система", action, details:details||"" }); if(fullAuditLogs.length>500) fullAuditLogs.pop(); saveToCloud(); }
 
-    function loadData() {
+    // Сохранение в облако
+    async function saveToCloud() {
+        if (isSyncing) { pendingSync = true; return; }
+        isSyncing = true;
+        document.getElementById("syncStatus").className = "sync-status syncing";
+        document.getElementById("syncStatus").innerHTML = "🔄 Синхронизация...";
+        
+        const dataToSave = {
+            version: Date.now(),
+            timestamp: new Date().toISOString(),
+            priceItems: priceItems,
+            factions: factions,
+            stats: stats,
+            hoursData: hoursData,
+            reasonsData: reasonsData,
+            users: users,
+            hourNorm: hourNorm,
+            lastChangeTimestamp: lastChangeTimestamp,
+            ratingChangeLogs: ratingChangeLogs,
+            fullAuditLogs: fullAuditLogs,
+            userRegDate: userRegDate
+        };
+        
         try {
-            let s = localStorage.getItem("ural_stats"); if(s) stats = JSON.parse(s);
-            let u = localStorage.getItem("ural_users"); if(u) users = JSON.parse(u);
-            let pi = localStorage.getItem("ural_price_items"); if(pi) priceItems = JSON.parse(pi);
-            let fc = localStorage.getItem("ural_factions"); if(fc) factions = JSON.parse(fc);
-            let t = localStorage.getItem("ural_lastchange"); if(t) lastChangeTimestamp = parseInt(t);
-            let hn = localStorage.getItem("ural_hournorm"); if(hn) hourNorm = parseInt(hn);
-            let hd = localStorage.getItem("ural_hours"); if(hd) hoursData = JSON.parse(hd);
-            let rd = localStorage.getItem("ural_reasons"); if(rd) reasonsData = JSON.parse(rd);
-            let rcl = localStorage.getItem("ural_rating_logs"); if(rcl) ratingChangeLogs = JSON.parse(rcl);
-            let fal = localStorage.getItem("ural_full_logs"); if(fal) fullAuditLogs = JSON.parse(fal);
-            let urd = localStorage.getItem("ural_user_regdate"); if(urd) userRegDate = JSON.parse(urd);
-            let ses = localStorage.getItem("ural_session");
-            if(ses) { let sess = JSON.parse(ses);
-                if(sess.type === "admin") currentUser = { type: "admin" };
-                else if(sess.type === "leader" && users[sess.login]) currentUser = { type: "leader", login: sess.login, factionIndex: users[sess.login].factionIndex };
+            const response = await fetch(`${SCRIPT_URL}?action=save&value=${encodeURIComponent(JSON.stringify(dataToSave))}`);
+            const result = await response.json();
+            if (result.status === "ok") {
+                document.getElementById("syncStatus").className = "sync-status synced";
+                document.getElementById("syncStatus").innerHTML = "✅ Синхронизировано";
+                lastSyncData = dataToSave;
+            } else {
+                throw new Error("Ошибка сохранения");
             }
-        } catch(e) {}
-        for(let i=0;i<factions.length;i++) {
-            if(!stats[i]) stats[i] = {};
-            for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
-            if(!hoursData[i]) hoursData[i] = {};
-            if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
+        } catch(e) {
+            console.error("Sync save error:", e);
+            document.getElementById("syncStatus").className = "sync-status error";
+            document.getElementById("syncStatus").innerHTML = "⚠️ Офлайн режим";
         }
+        isSyncing = false;
+        if (pendingSync) { pendingSync = false; saveToCloud(); }
     }
-    function saveAll() {
-        localStorage.setItem("ural_stats", JSON.stringify(stats));
-        localStorage.setItem("ural_users", JSON.stringify(users));
-        localStorage.setItem("ural_price_items", JSON.stringify(priceItems));
-        localStorage.setItem("ural_factions", JSON.stringify(factions));
-        localStorage.setItem("ural_lastchange", lastChangeTimestamp);
-        localStorage.setItem("ural_hournorm", hourNorm);
-        localStorage.setItem("ural_hours", JSON.stringify(hoursData));
-        localStorage.setItem("ural_reasons", JSON.stringify(reasonsData));
-        localStorage.setItem("ural_rating_logs", JSON.stringify(ratingChangeLogs));
-        localStorage.setItem("ural_full_logs", JSON.stringify(fullAuditLogs));
-        localStorage.setItem("ural_user_regdate", JSON.stringify(userRegDate));
-        if(currentUser) localStorage.setItem("ural_session", JSON.stringify({ type: currentUser.type, login: currentUser.login }));
-        else localStorage.removeItem("ural_session");
+
+    // Загрузка из облака
+    async function loadFromCloud() {
+        document.getElementById("syncStatus").className = "sync-status syncing";
+        document.getElementById("syncStatus").innerHTML = "🔄 Загрузка...";
+        try {
+            const response = await fetch(`${SCRIPT_URL}?action=load`);
+            const result = await response.json();
+            if (result.status === "ok" && result.data && result.data.length > 1) {
+                const row = result.data[1];
+                const cloudData = {
+                    priceItems: JSON.parse(row[2]),
+                    factions: JSON.parse(row[3]),
+                    stats: JSON.parse(row[4]),
+                    hoursData: JSON.parse(row[5]),
+                    reasonsData: JSON.parse(row[6]),
+                    users: JSON.parse(row[7]),
+                    hourNorm: row[8],
+                    lastChangeTimestamp: row[9]
+                };
+                
+                if (cloudData.priceItems) priceItems = cloudData.priceItems;
+                if (cloudData.factions) factions = cloudData.factions;
+                if (cloudData.stats) stats = cloudData.stats;
+                if (cloudData.hoursData) hoursData = cloudData.hoursData;
+                if (cloudData.reasonsData) reasonsData = cloudData.reasonsData;
+                if (cloudData.users) users = cloudData.users;
+                if (cloudData.hourNorm) hourNorm = cloudData.hourNorm;
+                if (cloudData.lastChangeTimestamp) lastChangeTimestamp = cloudData.lastChangeTimestamp;
+                
+                // Восстановление сессии
+                let ses = localStorage.getItem("ural_session");
+                if(ses) { let sess = JSON.parse(ses);
+                    if(sess.type === "admin") currentUser = { type: "admin" };
+                    else if(sess.type === "leader" && users[sess.login]) currentUser = { type: "leader", login: sess.login, factionIndex: users[sess.login].factionIndex };
+                }
+                
+                document.getElementById("syncStatus").className = "sync-status synced";
+                document.getElementById("syncStatus").innerHTML = "✅ Синхронизировано";
+                updateUI();
+            }
+        } catch(e) {
+            console.error("Sync load error:", e);
+            document.getElementById("syncStatus").className = "sync-status error";
+            document.getElementById("syncStatus").innerHTML = "⚠️ Ошибка соединения";
+        }
     }
 
     function calcTotal(s) { let total = 0; for(let p of priceItems) { let val = s[p.id] || 0; if(p.id === "repr") total -= val * p.value; else total += val * p.value; } return total; }
@@ -417,37 +474,77 @@
         document.getElementById("lastChange").innerHTML=lastChangeTimestamp>0?new Date(lastChangeTimestamp).toLocaleString():"—";
         const isAdmin=currentUser?.type==="admin";
         
-        // Прайс-лист
         const priceGrid=document.getElementById("priceGrid"); priceGrid.innerHTML="";
-        for(let p of priceItems){
+        for(let idx=0; idx<priceItems.length; idx++){
+            let p=priceItems[idx];
             let div=document.createElement("div"); div.className="price-item";
             if(isAdmin){
-                div.innerHTML=`<div class="price-info"><input type="text" value="${escapeHtml(p.name)}" style="width:140px" class="price-name-edit" data-id="${p.id}"><input type="number" value="${p.value}" style="width:80px" class="price-value-edit" data-id="${p.id}"></div><div class="price-actions"><button class="icon-btn save-price" data-id="${p.id}">💾</button><button class="icon-btn delete-price" data-id="${p.id}">🗑️</button></div>`;
-                let nameInput=div.querySelector(`.price-name-edit[data-id="${p.id}"]`);
-                let valInput=div.querySelector(`.price-value-edit[data-id="${p.id}"]`);
-                div.querySelector(".save-price").onclick=()=>{ let oldN=p.name, oldV=p.value; p.name=nameInput.value; p.value=Math.max(0,parseInt(valInput.value)||0); saveAll(); addFullLog("Редактирование прайса","система",`${oldN}: ${oldV}→${p.value}`); renderMain(); renderHours(); };
-                div.querySelector(".delete-price").onclick=()=>{ if(confirm(`Удалить "${p.name}"?`)){ priceItems=priceItems.filter(x=>x.id!==p.id); saveAll(); addFullLog("Удаление пункта прайса","система",p.name); renderMain(); renderHours(); } };
+                div.innerHTML=`
+                    <div class="price-info">
+                        <input type="text" value="${escapeHtml(p.name)}" style="flex:1; background:#0f121d; border:1px solid var(--line); border-radius:8px; padding:6px;" id="priceName_${idx}">
+                        <input type="number" value="${p.value}" style="width:80px; background:#0f121d; border:1px solid var(--line); border-radius:8px; padding:6px;" id="priceVal_${idx}">
+                    </div>
+                    <div class="price-actions">
+                        <button class="icon-btn save" data-idx="${idx}">💾 Сохранить</button>
+                        <button class="icon-btn delete" data-idx="${idx}">🗑️ Удалить</button>
+                    </div>
+                `;
+                div.querySelector(".save").onclick=()=>{
+                    let newName=document.getElementById(`priceName_${idx}`).value;
+                    let newVal=parseInt(document.getElementById(`priceVal_${idx}`).value)||0;
+                    p.name=newName; p.value=Math.max(0,newVal);
+                    saveToCloud();
+                    renderMain(); renderHours();
+                };
+                div.querySelector(".delete").onclick=()=>{
+                    if(confirm(`Удалить "${p.name}"?`)){
+                        priceItems.splice(idx,1);
+                        for(let i=0;i<factions.length;i++) delete stats[i][p.id];
+                        saveToCloud();
+                        renderMain(); renderHours();
+                    }
+                };
             } else {
                 div.innerHTML=`<div class="price-info"><span class="price-name">${escapeHtml(p.name)}</span><span class="price-value">${p.value} баллов</span></div>`;
             }
             priceGrid.appendChild(div);
         }
         
-        // Госструктуры
         const govGrid=document.getElementById("govGrid"); govGrid.innerHTML="";
-        factions.forEach((f,idx)=>{
+        for(let idx=0; idx<factions.length; idx++){
+            let f=factions[idx];
             let card=document.createElement("div"); card.className="gov-card";
             if(isAdmin){
-                card.innerHTML=`<div class="gov-info"><input type="text" value="${escapeHtml(f.name)}" style="flex:1" id="govName_${idx}"><div class="gov-actions"><button class="icon-btn save-gov" data-idx="${idx}">💾</button><button class="icon-btn delete-gov" data-idx="${idx}">🗑️</button></div></div><input type="text" value="${escapeHtml(f.leader)}" placeholder="Лидер" id="govLeader_${idx}">`;
-                card.querySelector(".save-gov").onclick=()=>{ let oldN=f.name, oldL=f.leader; f.name=document.getElementById(`govName_${idx}`).value; f.leader=document.getElementById(`govLeader_${idx}`).value; saveAll(); addFullLog("Редактирование структуры",f.name,`${oldN}→${f.name}, лидер: ${oldL}→${f.leader}`); renderMain(); renderHours(); };
-                card.querySelector(".delete-gov").onclick=()=>{ if(confirm(`Удалить "${f.name}"?`)){ factions.splice(idx,1); saveAll(); addFullLog("Удаление структуры","система",f.name); renderMain(); renderHours(); } };
+                card.innerHTML=`
+                    <input type="text" value="${escapeHtml(f.name)}" class="gov-edit-input" id="govName_${idx}">
+                    <input type="text" value="${escapeHtml(f.leader)}" class="gov-edit-input" id="govLeader_${idx}">
+                    <div class="gov-actions">
+                        <button class="icon-btn save" data-idx="${idx}">💾 Сохранить</button>
+                        <button class="icon-btn delete" data-idx="${idx}">🗑️ Удалить</button>
+                    </div>
+                `;
+                card.querySelector(".save").onclick=()=>{
+                    f.name=document.getElementById(`govName_${idx}`).value;
+                    f.leader=document.getElementById(`govLeader_${idx}`).value;
+                    saveToCloud();
+                    renderMain(); renderHours();
+                };
+                card.querySelector(".delete").onclick=()=>{
+                    if(confirm(`Удалить "${f.name}"?`)){
+                        factions.splice(idx,1);
+                        let newStats={}, newHours={}, newReasons={};
+                        for(let i=0;i<factions.length;i++){ newStats[i]=stats[i]; newHours[i]=hoursData[i]; newReasons[i]=reasonsData[i]; }
+                        stats=newStats; hoursData=newHours; reasonsData=newReasons;
+                        saveToCloud();
+                        renderMain(); renderHours();
+                    }
+                };
             } else {
-                card.innerHTML=`<div class="gov-info"><span class="gov-name">${escapeHtml(f.name)}</span></div><div class="gov-leader">👤 ${escapeHtml(f.leader)}</div>`;
+                card.innerHTML=`<div class="gov-name">${escapeHtml(f.name)}</div><div class="gov-leader">👤 ${escapeHtml(f.leader)}</div>`;
             }
             govGrid.appendChild(card);
-        });
+        }
         
-        // Таблица рейтинга
         let theadRow=document.querySelector("#ratingTable thead tr");
         theadRow.innerHTML='<th>Фракция / Лидер</th>';
         for(let p of priceItems) theadRow.innerHTML+=`<th>${escapeHtml(p.name)}</th>`;
@@ -463,7 +560,7 @@
                 let td=row.insertCell();
                 let inp=document.createElement("input"); inp.type="number"; inp.value=s[p.id]||0;
                 if(!canEdit) inp.disabled=true;
-                inp.onchange=((idx,pid)=>(e)=>{ if(canEdit){ let old=stats[idx][pid]||0; let nv=Math.max(0,parseInt(e.target.value)||0); stats[idx][pid]=nv; lastChangeTimestamp=Date.now(); saveAll(); addRatingLog(currentUser?.login||"admin",factions[idx].name,p.name,old,nv); addFullLog("Изменение рейтинга",factions[idx].name,`${p.name}: ${old}→${nv}`); renderMain(); }})(i,p.id);
+                inp.onchange=((idx,pid)=>(e)=>{ if(canEdit){ let old=stats[idx][pid]||0; let nv=Math.max(0,parseInt(e.target.value)||0); stats[idx][pid]=nv; lastChangeTimestamp=Date.now(); addRatingLog(currentUser?.login||"admin",factions[idx].name,p.name,old,nv); addFullLog("Изменение рейтинга",factions[idx].name,`${p.name}: ${old}→${nv}`); renderMain(); }})(i,p.id);
                 td.appendChild(inp);
             }
             let tdTotal=row.insertCell(); tdTotal.className="total-cell"; tdTotal.innerText=total;
@@ -495,7 +592,7 @@
                 total+=val;
                 let inp=document.createElement("input"); inp.type="number"; inp.value=val; inp.step="0.5"; inp.style.width="60px";
                 if(!canEdit) inp.disabled=true;
-                inp.onchange=((idx,dt)=>(e)=>{ if(canEdit){ let old=hoursData[idx][dt]||0; let v=parseFloat(e.target.value)||0; if(v<0)v=0; hoursData[idx][dt]=v; saveAll(); addFullLog("Изменение часов",factions[idx].name,`${dt}: ${old}→${v}`); renderHours(); }})(i,date);
+                inp.onchange=((idx,dt)=>(e)=>{ if(canEdit){ let old=hoursData[idx][dt]||0; let v=parseFloat(e.target.value)||0; if(v<0)v=0; hoursData[idx][dt]=v; saveToCloud(); renderHours(); }})(i,date);
                 td.appendChild(inp);
             }
             row.insertCell(1).innerHTML=`<span class="${total>=hourNorm?'hours-cell':'warning-cell'}">${total.toFixed(1)} ч.</span>`;
@@ -506,14 +603,14 @@
             let rt=rrow.insertCell(1);
             if(canEdit){
                 let ta=document.createElement("textarea"); ta.rows=2; ta.placeholder="Причина..."; ta.value=reason.text||"";
-                ta.onchange=((idx)=>(e)=>{ let old=reasonsData[idx].text||""; reasonsData[idx].text=e.target.value; saveAll(); addFullLog("Изменение причины",factions[idx].name,`${old}→${e.target.value}`); renderHours(); })(i);
+                ta.onchange=((idx)=>(e)=>{ reasonsData[idx].text=e.target.value; saveToCloud(); renderHours(); })(i);
                 rt.appendChild(ta);
             } else { rt.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.text)||"—"}</div>`; }
             let st=rrow.insertCell(2);
             if(isAdmin){
                 let sel=document.createElement("select");
                 sel.innerHTML=`<option value="pending" ${reason.status==="pending"?"selected":""}>⏳ Ожидает</option><option value="approved" ${reason.status==="approved"?"selected":""}>✅ Одобрено</option><option value="rejected" ${reason.status==="rejected"?"selected":""}>❌ Отклонено</option>`;
-                sel.onchange=((idx)=>(e)=>{ reasonsData[idx].status=e.target.value; saveAll(); addFullLog("Изменение статуса",factions[idx].name,`${reason.status}→${e.target.value}`); renderHours(); })(i);
+                sel.onchange=((idx)=>(e)=>{ reasonsData[idx].status=e.target.value; saveToCloud(); renderHours(); })(i);
                 st.appendChild(sel);
             } else {
                 let cls=reason.status==="pending"?"status-pending":(reason.status==="approved"?"status-approved":"status-rejected");
@@ -523,14 +620,14 @@
             let ct=rrow.insertCell(3);
             if(isAdmin){
                 let inp=document.createElement("input"); inp.type="text"; inp.placeholder="Комментарий..."; inp.value=reason.adminComment||""; inp.style.width="100%";
-                inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveAll(); addFullLog("Комментарий админа",factions[idx].name,e.target.value); renderHours(); })(i);
+                inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveToCloud(); renderHours(); })(i);
                 ct.appendChild(inp);
             } else { ct.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.adminComment)||"—"}</div>`; }
         }
         let normInp=document.getElementById("hourNorm");
         normInp.value=hourNorm; normInp.disabled=!isAdmin;
         document.getElementById("editNormBtn").style.display=isAdmin?"inline-block":"none";
-        normInp.onchange=(e)=>{ if(isAdmin){ let old=hourNorm; hourNorm=Math.max(0,parseFloat(e.target.value)||0); saveAll(); addFullLog("Изменение нормы часов","система",`${old}→${hourNorm}`); renderHours(); } };
+        normInp.onchange=(e)=>{ if(isAdmin){ hourNorm=Math.max(0,parseFloat(e.target.value)||0); saveToCloud(); renderHours(); } };
     }
 
     function renderAdmin() {
@@ -543,7 +640,7 @@
             r.insertCell(1).innerHTML=data.email;
             r.insertCell(2).innerHTML=factions[data.factionIndex]?.name||"—";
             r.insertCell(3).innerHTML=userRegDate[login]||"—";
-            let delBtn=document.createElement("button"); delBtn.textContent="🗑️ Удалить"; delBtn.className="btn"; delBtn.style.background="rgba(220,70,70,0.3)"; delBtn.onclick=()=>{ if(confirm(`Удалить ${login}?`)){ delete users[login]; delete userRegDate[login]; saveAll(); renderAdmin(); } };
+            let delBtn=document.createElement("button"); delBtn.textContent="🗑️ Удалить"; delBtn.className="btn"; delBtn.style.background="rgba(220,70,70,0.3)"; delBtn.onclick=()=>{ if(confirm(`Удалить ${login}?`)){ delete users[login]; delete userRegDate[login]; saveToCloud(); renderAdmin(); } };
             r.insertCell(4).appendChild(delBtn);
         }
         let flb=document.getElementById("fullLogsBody"); flb.innerHTML="";
@@ -575,7 +672,7 @@
         let hash=await hashPassword(pass);
         users[login]={passwordHash:hash,email,factionIndex:factionIdx,login};
         userRegDate[login]=new Date().toLocaleString();
-        saveAll(); addFullLog("Регистрация",factions[factionIdx].name,`Новый лидер: ${login}`);
+        saveToCloud();
         return null;
     }
     async function login(login,pass){
@@ -584,15 +681,15 @@
         let hash=await hashPassword(pass);
         if(u.passwordHash!==hash) return "Неверный пароль";
         currentUser={type:"leader",login:login,factionIndex:u.factionIndex};
-        saveAll(); addFullLog("Вход",factions[u.factionIndex].name,`Лидер ${login} вошёл`);
+        localStorage.setItem("ural_session", JSON.stringify({ type: "leader", login: login }));
         updateUI();
         return null;
     }
     async function adminLogin(login,pass){
-        if(login==="admin"&&pass==="admin123"){ currentUser={type:"admin"}; saveAll(); addFullLog("Вход","система","Админ вошёл"); updateUI(); return null; }
+        if(login==="admin"&&pass==="admin123"){ currentUser={type:"admin"}; localStorage.setItem("ural_session", JSON.stringify({ type: "admin" })); updateUI(); return null; }
         return "Неверные данные (admin / admin123)";
     }
-    function logout(){ if(currentUser) addFullLog("Выход","система",`${currentUser.type==="admin"?"Админ":currentUser.login} вышел`); currentUser=null; saveAll(); updateUI(); }
+    function logout(){ currentUser=null; localStorage.removeItem("ural_session"); updateUI(); }
 
     function initModals(){
         document.getElementById("showRegisterBtn").onclick=()=>{
@@ -628,43 +725,36 @@
         });
         document.getElementById("prevWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()-7); renderHours(); };
         document.getElementById("nextWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()+7); renderHours(); };
-        document.getElementById("editPriceBtn")?.setAttribute("style","display:none");
-        document.getElementById("editGovBtn")?.setAttribute("style","display:none");
         document.getElementById("editNormBtn").onclick=()=>alert("Измените норму в поле выше");
-        document.getElementById("clearRatingLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить историю изменений?")){ ratingChangeLogs=[]; saveAll(); renderAdmin(); } });
-        document.getElementById("clearAccountsBtn")?.addEventListener("click",()=>{ if(confirm("Удалить всех пользователей?")){ users={}; userRegDate={}; saveAll(); renderAdmin(); } });
-        document.getElementById("clearFullLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить логи?")){ fullAuditLogs=[]; saveAll(); renderAdmin(); } });
-        
-        // Добавление прайса
+        document.getElementById("clearRatingLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить историю изменений?")){ ratingChangeLogs=[]; saveToCloud(); renderAdmin(); } });
+        document.getElementById("clearAccountsBtn")?.addEventListener("click",()=>{ if(confirm("Удалить всех пользователей?")){ users={}; userRegDate={}; saveToCloud(); renderAdmin(); } });
+        document.getElementById("clearFullLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить логи?")){ fullAuditLogs=[]; saveToCloud(); renderAdmin(); } });
         document.getElementById("addPriceBtn").onclick=()=>{ document.getElementById("addPriceModal").classList.add("active"); };
         document.getElementById("confirmAddPrice").onclick=()=>{
             let name=document.getElementById("newPriceName").value.trim();
             let val=parseInt(document.getElementById("newPriceValue").value)||0;
             if(!name){ alert("Введите название"); return; }
-            let newId="custom_"+Date.now()+"_"+Math.random().toString(36).substr(2,5);
+            let newId="custom_"+Date.now();
             priceItems.push({ id:newId, name:name, value:Math.max(0,val) });
             for(let i=0;i<factions.length;i++) if(!stats[i][newId]) stats[i][newId]=0;
-            saveAll(); addFullLog("Добавление пункта прайса","система",`${name}: ${val}`);
+            saveToCloud();
             document.getElementById("addPriceModal").classList.remove("active");
             document.getElementById("newPriceName").value="";
             document.getElementById("newPriceValue").value="";
             renderMain(); renderHours();
         };
-        
-        // Добавление госструктуры
         document.getElementById("addGovBtn").onclick=()=>{ document.getElementById("addGovModal").classList.add("active"); };
         document.getElementById("confirmAddGov").onclick=()=>{
             let name=document.getElementById("newGovName").value.trim();
             let leader=document.getElementById("newGovLeader").value.trim() || "—";
             if(!name){ alert("Введите название"); return; }
-            let newId="gov_"+Date.now()+"_"+Math.random().toString(36).substr(2,5);
-            factions.push({ id:newId, name:name, leader:leader });
+            factions.push({ id:"gov_"+Date.now(), name:name, leader:leader });
             let newIdx=factions.length-1;
             stats[newIdx]={};
             for(let p of priceItems) stats[newIdx][p.id]=0;
             hoursData[newIdx]={};
             reasonsData[newIdx]={ text:"", status:"pending", adminComment:"" };
-            saveAll(); addFullLog("Добавление структуры","система",`${name} (лидер: ${leader})`);
+            saveToCloud();
             document.getElementById("addGovModal").classList.remove("active");
             document.getElementById("newGovName").value="";
             document.getElementById("newGovLeader").value="";
@@ -672,9 +762,31 @@
         };
     }
 
-    loadData();
-    initModals();
-    updateUI();
+    // Инициализация: загрузка из облака + локальные настройки
+    (async function() {
+        await loadFromCloud();
+        
+        // Инициализация данных для фракций
+        for(let i=0;i<factions.length;i++) {
+            if(!stats[i]) stats[i] = {};
+            for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
+            if(!hoursData[i]) hoursData[i] = {};
+            if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
+        }
+        
+        // Восстановление сессии
+        let ses = localStorage.getItem("ural_session");
+        if(ses) { let sess = JSON.parse(ses);
+            if(sess.type === "admin") currentUser = { type: "admin" };
+            else if(sess.type === "leader" && users[sess.login]) currentUser = { type: "leader", login: sess.login, factionIndex: users[sess.login].factionIndex };
+        }
+        
+        initModals();
+        updateUI();
+        
+        // Автосохранение каждые 30 секунд и проверка обновлений
+        setInterval(() => { loadFromCloud(); }, 30000);
+    })();
 </script>
 </body>
 </html>
