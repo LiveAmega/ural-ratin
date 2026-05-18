@@ -16,6 +16,7 @@
             --green: #40c785;
             --orange: #f59e42;
             --red: #ff6b6b;
+            --blue: #6aa7ff;
             --radius-xl: 28px;
             --radius-lg: 20px;
             --radius-md: 14px;
@@ -89,8 +90,10 @@
         .btn-danger { background: rgba(220,70,70,0.2); border-color: rgba(255,100,100,0.3); }
         .btn-success { background: rgba(64,199,133,0.2); border-color: var(--green); color: var(--green); }
         .user-chip { background: rgba(0,0,0,0.45); border-radius: 60px; padding: 5px 16px; border-left: 2px solid var(--accent); }
-        .icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 8px; }
-        .icon-btn:hover { background: rgba(255,255,255,0.1); }
+        .icon-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; color: var(--text); }
+        .icon-btn:hover { background: rgba(255,255,255,0.2); }
+        .icon-btn.delete { color: var(--red); }
+        .icon-btn.save { color: var(--green); }
 
         .page { display: none; }
         .page.active { display: block; }
@@ -132,26 +135,23 @@
 
         .price-grid, .gov-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 10px;
         }
         .price-item, .gov-card {
             background: var(--surface-strong);
             border-radius: var(--radius-md);
             padding: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             border: 1px solid var(--line);
         }
-        .price-info { display: flex; flex-direction: column; gap: 5px; flex: 1; }
-        .price-name { font-weight: 600; }
-        .price-value { font-weight: 700; color: var(--green); font-size: 0.9rem; }
-        .price-actions, .gov-actions { display: flex; gap: 5px; }
-        .gov-card { flex-direction: column; align-items: stretch; }
-        .gov-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .gov-name { font-weight: 600; }
-        .gov-leader { font-size: 0.8rem; color: var(--muted); margin-top: 5px; }
+        .price-info { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .price-name { font-weight: 600; flex: 1; }
+        .price-value { font-weight: 700; color: var(--green); }
+        .price-actions, .gov-actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+        .gov-card { display: flex; flex-direction: column; gap: 8px; }
+        .gov-name { font-weight: 600; font-size: 1rem; }
+        .gov-leader { font-size: 0.8rem; color: var(--muted); }
+        .gov-edit-input { background: #0f121d; border: 1px solid var(--line); border-radius: 8px; padding: 6px; color: var(--text); width: 100%; }
 
         .table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -259,18 +259,12 @@
         </div>
 
         <div class="card">
-            <div class="card-header">
-                <h2>💰 Прайс-лист</h2>
-                <div><button id="addPriceBtn" class="btn btn-success" style="display:none;">➕ Добавить пункт</button></div>
-            </div>
+            <div class="card-header"><h2>💰 Прайс-лист</h2><button id="addPriceBtn" class="btn btn-success" style="display:none;">➕ Добавить пункт</button></div>
             <div class="price-grid" id="priceGrid"></div>
         </div>
 
         <div class="card">
-            <div class="card-header">
-                <h2>🏛️ Государственные структуры</h2>
-                <div><button id="addGovBtn" class="btn btn-success" style="display:none;">➕ Добавить структуру</button></div>
-            </div>
+            <div class="card-header"><h2>🏛️ Государственные структуры</h2><button id="addGovBtn" class="btn btn-success" style="display:none;">➕ Добавить структуру</button></div>
             <div class="gov-grid" id="govGrid"></div>
         </div>
 
@@ -280,14 +274,18 @@
         </div>
     </div>
 
-    <!-- СТРАНИЦА 2: ЧАСЫ ЛИДЕРОВ -->
+    <!-- СТРАНИЦА 2: ЧАСЫ ЛИДЕРОВ (с причинами) -->
     <div id="hoursPage" class="page">
         <div class="card">
             <div class="card-header"><h2>⏱️ Часы лидеров (еженедельно)</h2><div><span>Норма:</span><input type="number" id="hourNorm" value="40" style="width:70px;" disabled><button id="editNormBtn" class="btn" style="display:none;">✏️</button></div></div>
             <div class="date-nav"><button id="prevWeekBtn">◀ Пред. неделя</button><span id="currentWeekRange" style="font-weight:bold;"></span><button id="nextWeekBtn">След. неделя ▶</button></div>
             <div class="table-wrapper"><table id="hoursTable"><thead><tr><th>Фракция / Лидер</th><th id="day0"></th><th id="day1"></th><th id="day2"></th><th id="day3"></th><th id="day4"></th><th id="day5"></th><th id="day6"></th><th>Итого</th><th>Статус</th></tr></thead><tbody id="hoursBody"></tbody></table></div>
         </div>
-        <div class="card"><div class="card-header"><h2>📝 Причины невыполнения нормы</h2></div><div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody id="reasonsBody"></tbody></table></div></div>
+
+        <div class="card">
+            <div class="card-header"><h2>📝 Причины невыполнения нормы</h2></div>
+            <div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина (от лидера)</th><th>Статус</th><th>Комментарий админа</th></tr></thead><tbody id="reasonsBody"></tbody></table></div>
+        </div>
     </div>
 
     <!-- СТРАНИЦА 3: АДМИН-ПАНЕЛЬ -->
@@ -298,7 +296,7 @@
         </div>
         <div class="card">
             <div class="card-header"><h2>👥 Аккаунты лидеров</h2><button id="clearAccountsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Удалить всех</button></div>
-            <div class="table-wrapper"><table id="accountsTable"><thead><tr><th>Логин</th><th>Почта</th><th>Фракция</th><th>Дата регистрации</th><th>Действия</th></tr></thead><tbody id="accountsBody"></tbody></table></div>
+            <div class="table-wrapper"><table id="accountsTable"><thead><tr><th>Логин</th><th>Почта</th><th>Фракция</th><th>Дата регистрации</th><th>Действия</th></tr></thead><tbody id="accountsBody"></tbody></td></div>
         </div>
         <div class="card">
             <div class="card-header"><h2>📋 Полный аудит действий</h2><button id="clearFullLogsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Очистить логи</button></div>
@@ -417,37 +415,73 @@
         document.getElementById("lastChange").innerHTML=lastChangeTimestamp>0?new Date(lastChangeTimestamp).toLocaleString():"—";
         const isAdmin=currentUser?.type==="admin";
         
-        // Прайс-лист
         const priceGrid=document.getElementById("priceGrid"); priceGrid.innerHTML="";
-        for(let p of priceItems){
+        for(let idx=0; idx<priceItems.length; idx++){
+            let p=priceItems[idx];
             let div=document.createElement("div"); div.className="price-item";
             if(isAdmin){
-                div.innerHTML=`<div class="price-info"><input type="text" value="${escapeHtml(p.name)}" style="width:140px" class="price-name-edit" data-id="${p.id}"><input type="number" value="${p.value}" style="width:80px" class="price-value-edit" data-id="${p.id}"></div><div class="price-actions"><button class="icon-btn save-price" data-id="${p.id}">💾</button><button class="icon-btn delete-price" data-id="${p.id}">🗑️</button></div>`;
-                let nameInput=div.querySelector(`.price-name-edit[data-id="${p.id}"]`);
-                let valInput=div.querySelector(`.price-value-edit[data-id="${p.id}"]`);
-                div.querySelector(".save-price").onclick=()=>{ let oldN=p.name, oldV=p.value; p.name=nameInput.value; p.value=Math.max(0,parseInt(valInput.value)||0); saveAll(); addFullLog("Редактирование прайса","система",`${oldN}: ${oldV}→${p.value}`); renderMain(); renderHours(); };
-                div.querySelector(".delete-price").onclick=()=>{ if(confirm(`Удалить "${p.name}"?`)){ priceItems=priceItems.filter(x=>x.id!==p.id); saveAll(); addFullLog("Удаление пункта прайса","система",p.name); renderMain(); renderHours(); } };
+                div.innerHTML=`
+                    <div class="price-info">
+                        <input type="text" value="${escapeHtml(p.name)}" style="flex:1; background:#0f121d; border:1px solid var(--line); border-radius:8px; padding:6px;" id="priceName_${idx}">
+                        <input type="number" value="${p.value}" style="width:80px; background:#0f121d; border:1px solid var(--line); border-radius:8px; padding:6px;" id="priceVal_${idx}">
+                    </div>
+                    <div class="price-actions">
+                        <button class="icon-btn save" data-idx="${idx}">💾 Сохранить</button>
+                        <button class="icon-btn delete" data-idx="${idx}">🗑️ Удалить</button>
+                    </div>
+                `;
+                div.querySelector(".save").onclick=()=>{
+                    let newName=document.getElementById(`priceName_${idx}`).value;
+                    let newVal=parseInt(document.getElementById(`priceVal_${idx}`).value)||0;
+                    p.name=newName; p.value=Math.max(0,newVal);
+                    saveAll(); renderMain(); renderHours();
+                };
+                div.querySelector(".delete").onclick=()=>{
+                    if(confirm(`Удалить "${p.name}"?`)){
+                        priceItems.splice(idx,1);
+                        for(let i=0;i<factions.length;i++) delete stats[i][p.id];
+                        saveAll(); renderMain(); renderHours();
+                    }
+                };
             } else {
                 div.innerHTML=`<div class="price-info"><span class="price-name">${escapeHtml(p.name)}</span><span class="price-value">${p.value} баллов</span></div>`;
             }
             priceGrid.appendChild(div);
         }
         
-        // Госструктуры
         const govGrid=document.getElementById("govGrid"); govGrid.innerHTML="";
-        factions.forEach((f,idx)=>{
+        for(let idx=0; idx<factions.length; idx++){
+            let f=factions[idx];
             let card=document.createElement("div"); card.className="gov-card";
             if(isAdmin){
-                card.innerHTML=`<div class="gov-info"><input type="text" value="${escapeHtml(f.name)}" style="flex:1" id="govName_${idx}"><div class="gov-actions"><button class="icon-btn save-gov" data-idx="${idx}">💾</button><button class="icon-btn delete-gov" data-idx="${idx}">🗑️</button></div></div><input type="text" value="${escapeHtml(f.leader)}" placeholder="Лидер" id="govLeader_${idx}">`;
-                card.querySelector(".save-gov").onclick=()=>{ let oldN=f.name, oldL=f.leader; f.name=document.getElementById(`govName_${idx}`).value; f.leader=document.getElementById(`govLeader_${idx}`).value; saveAll(); addFullLog("Редактирование структуры",f.name,`${oldN}→${f.name}, лидер: ${oldL}→${f.leader}`); renderMain(); renderHours(); };
-                card.querySelector(".delete-gov").onclick=()=>{ if(confirm(`Удалить "${f.name}"?`)){ factions.splice(idx,1); saveAll(); addFullLog("Удаление структуры","система",f.name); renderMain(); renderHours(); } };
+                card.innerHTML=`
+                    <input type="text" value="${escapeHtml(f.name)}" class="gov-edit-input" id="govName_${idx}">
+                    <input type="text" value="${escapeHtml(f.leader)}" class="gov-edit-input" id="govLeader_${idx}">
+                    <div class="gov-actions">
+                        <button class="icon-btn save" data-idx="${idx}">💾 Сохранить</button>
+                        <button class="icon-btn delete" data-idx="${idx}">🗑️ Удалить</button>
+                    </div>
+                `;
+                card.querySelector(".save").onclick=()=>{
+                    f.name=document.getElementById(`govName_${idx}`).value;
+                    f.leader=document.getElementById(`govLeader_${idx}`).value;
+                    saveAll(); renderMain(); renderHours();
+                };
+                card.querySelector(".delete").onclick=()=>{
+                    if(confirm(`Удалить "${f.name}"?`)){
+                        factions.splice(idx,1);
+                        let newStats={}, newHours={}, newReasons={};
+                        for(let i=0;i<factions.length;i++){ newStats[i]=stats[i]; newHours[i]=hoursData[i]; newReasons[i]=reasonsData[i]; }
+                        stats=newStats; hoursData=newHours; reasonsData=newReasons;
+                        saveAll(); renderMain(); renderHours();
+                    }
+                };
             } else {
-                card.innerHTML=`<div class="gov-info"><span class="gov-name">${escapeHtml(f.name)}</span></div><div class="gov-leader">👤 ${escapeHtml(f.leader)}</div>`;
+                card.innerHTML=`<div class="gov-name">${escapeHtml(f.name)}</div><div class="gov-leader">👤 ${escapeHtml(f.leader)}</div>`;
             }
             govGrid.appendChild(card);
-        });
+        }
         
-        // Таблица рейтинга
         let theadRow=document.querySelector("#ratingTable thead tr");
         theadRow.innerHTML='<th>Фракция / Лидер</th>';
         for(let p of priceItems) theadRow.innerHTML+=`<th>${escapeHtml(p.name)}</th>`;
@@ -463,7 +497,7 @@
                 let td=row.insertCell();
                 let inp=document.createElement("input"); inp.type="number"; inp.value=s[p.id]||0;
                 if(!canEdit) inp.disabled=true;
-                inp.onchange=((idx,pid)=>(e)=>{ if(canEdit){ let old=stats[idx][pid]||0; let nv=Math.max(0,parseInt(e.target.value)||0); stats[idx][pid]=nv; lastChangeTimestamp=Date.now(); saveAll(); addRatingLog(currentUser?.login||"admin",factions[idx].name,p.name,old,nv); addFullLog("Изменение рейтинга",factions[idx].name,`${p.name}: ${old}→${nv}`); renderMain(); }})(i,p.id);
+                inp.onchange=((idx,pid)=>(e)=>{ if(canEdit){ let old=stats[idx][pid]||0; let nv=Math.max(0,parseInt(e.target.value)||0); stats[idx][pid]=nv; lastChangeTimestamp=Date.now(); addRatingLog(currentUser?.login||"admin",factions[idx].name,p.name,old,nv); addFullLog("Изменение рейтинга",factions[idx].name,`${p.name}: ${old}→${nv}`); renderMain(); }})(i,p.id);
                 td.appendChild(inp);
             }
             let tdTotal=row.insertCell(); tdTotal.className="total-cell"; tdTotal.innerText=total;
@@ -495,42 +529,45 @@
                 total+=val;
                 let inp=document.createElement("input"); inp.type="number"; inp.value=val; inp.step="0.5"; inp.style.width="60px";
                 if(!canEdit) inp.disabled=true;
-                inp.onchange=((idx,dt)=>(e)=>{ if(canEdit){ let old=hoursData[idx][dt]||0; let v=parseFloat(e.target.value)||0; if(v<0)v=0; hoursData[idx][dt]=v; saveAll(); addFullLog("Изменение часов",factions[idx].name,`${dt}: ${old}→${v}`); renderHours(); }})(i,date);
+                inp.onchange=((idx,dt)=>(e)=>{ if(canEdit){ let old=hoursData[idx][dt]||0; let v=parseFloat(e.target.value)||0; if(v<0)v=0; hoursData[idx][dt]=v; saveAll(); renderHours(); }})(i,date);
                 td.appendChild(inp);
             }
             row.insertCell(1).innerHTML=`<span class="${total>=hourNorm?'hours-cell':'warning-cell'}">${total.toFixed(1)} ч.</span>`;
             row.insertCell(2).innerHTML=`<span style="color:${total>=hourNorm?'var(--green)':'var(--orange)'}">${total>=hourNorm?"✅ Выполнена":"❌ Не выполнена"}</span>`;
+            
             let reason=reasonsData[i]||{};
             let rrow=rb.insertRow();
             rrow.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong>`;
             let rt=rrow.insertCell(1);
             if(canEdit){
-                let ta=document.createElement("textarea"); ta.rows=2; ta.placeholder="Причина..."; ta.value=reason.text||"";
-                ta.onchange=((idx)=>(e)=>{ let old=reasonsData[idx].text||""; reasonsData[idx].text=e.target.value; saveAll(); addFullLog("Изменение причины",factions[idx].name,`${old}→${e.target.value}`); renderHours(); })(i);
+                let ta=document.createElement("textarea"); ta.rows=2; ta.placeholder="Укажите причину, если не выполнили норму..."; ta.value=reason.text||"";
+                ta.onchange=((idx)=>(e)=>{ reasonsData[idx].text=e.target.value; saveAll(); renderHours(); })(i);
                 rt.appendChild(ta);
             } else { rt.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.text)||"—"}</div>`; }
+            
             let st=rrow.insertCell(2);
             if(isAdmin){
                 let sel=document.createElement("select");
                 sel.innerHTML=`<option value="pending" ${reason.status==="pending"?"selected":""}>⏳ Ожидает</option><option value="approved" ${reason.status==="approved"?"selected":""}>✅ Одобрено</option><option value="rejected" ${reason.status==="rejected"?"selected":""}>❌ Отклонено</option>`;
-                sel.onchange=((idx)=>(e)=>{ reasonsData[idx].status=e.target.value; saveAll(); addFullLog("Изменение статуса",factions[idx].name,`${reason.status}→${e.target.value}`); renderHours(); })(i);
+                sel.onchange=((idx)=>(e)=>{ reasonsData[idx].status=e.target.value; saveAll(); renderHours(); })(i);
                 st.appendChild(sel);
             } else {
                 let cls=reason.status==="pending"?"status-pending":(reason.status==="approved"?"status-approved":"status-rejected");
                 let txt=reason.status==="pending"?"⏳ Ожидает":(reason.status==="approved"?"✅ Одобрено":"❌ Отклонено");
                 st.innerHTML=`<span class="status-badge ${cls}">${txt}</span>`;
             }
+            
             let ct=rrow.insertCell(3);
             if(isAdmin){
-                let inp=document.createElement("input"); inp.type="text"; inp.placeholder="Комментарий..."; inp.value=reason.adminComment||""; inp.style.width="100%";
-                inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveAll(); addFullLog("Комментарий админа",factions[idx].name,e.target.value); renderHours(); })(i);
+                let inp=document.createElement("input"); inp.type="text"; inp.placeholder="Комментарий для лидера..."; inp.value=reason.adminComment||""; inp.style.width="100%";
+                inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveAll(); renderHours(); })(i);
                 ct.appendChild(inp);
             } else { ct.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.adminComment)||"—"}</div>`; }
         }
         let normInp=document.getElementById("hourNorm");
         normInp.value=hourNorm; normInp.disabled=!isAdmin;
         document.getElementById("editNormBtn").style.display=isAdmin?"inline-block":"none";
-        normInp.onchange=(e)=>{ if(isAdmin){ let old=hourNorm; hourNorm=Math.max(0,parseFloat(e.target.value)||0); saveAll(); addFullLog("Изменение нормы часов","система",`${old}→${hourNorm}`); renderHours(); } };
+        normInp.onchange=(e)=>{ if(isAdmin){ hourNorm=Math.max(0,parseFloat(e.target.value)||0); saveAll(); renderHours(); } };
     }
 
     function renderAdmin() {
@@ -628,20 +665,16 @@
         });
         document.getElementById("prevWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()-7); renderHours(); };
         document.getElementById("nextWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()+7); renderHours(); };
-        document.getElementById("editPriceBtn")?.setAttribute("style","display:none");
-        document.getElementById("editGovBtn")?.setAttribute("style","display:none");
         document.getElementById("editNormBtn").onclick=()=>alert("Измените норму в поле выше");
         document.getElementById("clearRatingLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить историю изменений?")){ ratingChangeLogs=[]; saveAll(); renderAdmin(); } });
         document.getElementById("clearAccountsBtn")?.addEventListener("click",()=>{ if(confirm("Удалить всех пользователей?")){ users={}; userRegDate={}; saveAll(); renderAdmin(); } });
         document.getElementById("clearFullLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить логи?")){ fullAuditLogs=[]; saveAll(); renderAdmin(); } });
-        
-        // Добавление прайса
         document.getElementById("addPriceBtn").onclick=()=>{ document.getElementById("addPriceModal").classList.add("active"); };
         document.getElementById("confirmAddPrice").onclick=()=>{
             let name=document.getElementById("newPriceName").value.trim();
             let val=parseInt(document.getElementById("newPriceValue").value)||0;
             if(!name){ alert("Введите название"); return; }
-            let newId="custom_"+Date.now()+"_"+Math.random().toString(36).substr(2,5);
+            let newId="custom_"+Date.now();
             priceItems.push({ id:newId, name:name, value:Math.max(0,val) });
             for(let i=0;i<factions.length;i++) if(!stats[i][newId]) stats[i][newId]=0;
             saveAll(); addFullLog("Добавление пункта прайса","система",`${name}: ${val}`);
@@ -650,15 +683,12 @@
             document.getElementById("newPriceValue").value="";
             renderMain(); renderHours();
         };
-        
-        // Добавление госструктуры
         document.getElementById("addGovBtn").onclick=()=>{ document.getElementById("addGovModal").classList.add("active"); };
         document.getElementById("confirmAddGov").onclick=()=>{
             let name=document.getElementById("newGovName").value.trim();
             let leader=document.getElementById("newGovLeader").value.trim() || "—";
             if(!name){ alert("Введите название"); return; }
-            let newId="gov_"+Date.now()+"_"+Math.random().toString(36).substr(2,5);
-            factions.push({ id:newId, name:name, leader:leader });
+            factions.push({ id:"gov_"+Date.now(), name:name, leader:leader });
             let newIdx=factions.length-1;
             stats[newIdx]={};
             for(let p of priceItems) stats[newIdx][p.id]=0;
