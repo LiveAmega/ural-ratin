@@ -202,6 +202,8 @@
         .status-pending { background: rgba(245,158,66,0.2); color: var(--orange); }
         .status-approved { background: rgba(64,199,133,0.2); color: var(--green); }
         .status-rejected { background: rgba(255,107,107,0.2); color: var(--red); }
+        .proof-link { color: var(--blue); text-decoration: none; word-break: break-all; }
+        .proof-link:hover { text-decoration: underline; color: var(--accent); }
 
         .modal {
             display: none;
@@ -276,8 +278,8 @@
         </div>
 
         <div class="card">
-            <div class="card-header"><h2>📊 Рейтинг эффективности</h2></div>
-            <div class="table-wrapper"><table id="ratingTable"><thead><tr><th>Фракция / Лидер</th><th id="ratingHeaders"></th><th>ИТОГО</th></tr></thead><tbody id="ratingBody"></tbody></table></div>
+            <div class="card-header"><h2>📊 Лидерский отчёт</h2></div>
+            <div class="table-wrapper"><table id="ratingTable"><thead><tr><th>Фракция / Лидер</th><th id="ratingHeaders"></th><th>ИТОГО</th><th>Доказательства</th></tr></thead><tbody id="ratingBody"></tbody></table></div>
         </div>
     </div>
 
@@ -291,7 +293,7 @@
 
         <div class="card">
             <div class="card-header"><h2>📝 Причины невыполнения нормы</h2></div>
-            <div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина (от лидера)</th><th>Статус</th><th>Комментарий админа</th></table></thead><tbody id="reasonsBody"></tbody></table></div>
+            <div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина (от лидера)</th><th>Статус</th><th>Комментарий админа</th><tr></thead><tbody id="reasonsBody"></tbody></table></div>
         </div>
     </div>
 
@@ -299,7 +301,7 @@
     <div id="adminPage" class="page">
         <div class="card">
             <div class="card-header"><h2>👑 Управление администраторами</h2><button id="addAdminBtn" class="btn btn-purple">➕ Добавить администратора</button></div>
-            <div class="table-wrapper"><table id="adminsTable"><thead><td><th>Логин</th><th>Роль</th><th>Действия</th></tr></thead><tbody id="adminsBody"></tbody></table></div>
+            <div class="table-wrapper"><table id="adminsTable"><thead><tr><th>Логин</th><th>Роль</th><th>Действия</th></tr></thead><tbody id="adminsBody"></tbody></table></div>
         </div>
         <div class="card">
             <div class="card-header"><h2>🔐 Сменить пароль</h2></div>
@@ -310,7 +312,7 @@
         </div>
         <div class="card">
             <div class="card-header"><h2>📊 История изменений рейтинга</h2><button id="clearRatingLogsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Очистить</button></div>
-            <div class="table-wrapper"><table id="ratingLogsTable"><thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Поле</th><th>Было</th><th>Стало</th></tr></thead><tbody id="ratingLogsBody"></tbody></table></div>
+            <div class="table-wrapper"><table id="ratingLogsTable"><thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Поле</th><th>Было</th><th>Стало</th></tr></thead><tbody id="ratingLogsBody"></tbody></tr></div>
         </div>
         <div class="card">
             <div class="card-header"><h2>👥 Аккаунты лидеров</h2><button id="clearAccountsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Удалить всех</button></div>
@@ -349,7 +351,7 @@
     };
 
     // Данные
-    let admins = {}; // { login: { passwordHash, role } }
+    let admins = {};
     let currentAdmin = null;
     
     // Динамические данные
@@ -381,6 +383,7 @@
     let stats = {}, users = {}, currentUser = null, lastChangeTimestamp = Date.now(), hourNorm = 40;
     let hoursData = {}, reasonsData = {};
     let ratingChangeLogs = [], fullAuditLogs = [], userRegDate = {};
+    let proofs = {}; // { factionIndex: string (ссылка) }
     let currentWeekStart = new Date();
     currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + (currentWeekStart.getDay() === 0 ? -6 : 1));
 
@@ -393,7 +396,7 @@
     function saveAllToLocal() {
         const allData = {
             priceItems, factions, stats, hoursData, reasonsData, users, hourNorm, lastChangeTimestamp,
-            ratingChangeLogs, fullAuditLogs, userRegDate, admins,
+            ratingChangeLogs, fullAuditLogs, userRegDate, admins, proofs,
             currentAdmin: currentAdmin ? { login: currentAdmin.login, role: currentAdmin.role } : null,
             currentUser: currentUser ? { type: currentUser.type, login: currentUser.login, factionIndex: currentUser.factionIndex } : null
         };
@@ -417,6 +420,7 @@
                 if (data.fullAuditLogs) fullAuditLogs = data.fullAuditLogs;
                 if (data.userRegDate) userRegDate = data.userRegDate;
                 if (data.admins) admins = data.admins;
+                if (data.proofs) proofs = data.proofs;
                 if (data.currentAdmin) currentAdmin = data.currentAdmin;
                 if (data.currentUser) {
                     if (data.currentUser.type === "leader" && users[data.currentUser.login]) {
@@ -434,6 +438,7 @@
             for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
             if(!hoursData[i]) hoursData[i] = {};
             if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
+            if(proofs[i] === undefined) proofs[i] = "";
         }
     }
 
@@ -453,8 +458,6 @@
         document.getElementById("totalReprimands").innerText=rep;
         document.getElementById("positivePoints").innerText=pos;
         document.getElementById("lastChange").innerHTML=lastChangeTimestamp>0?new Date(lastChangeTimestamp).toLocaleString():"—";
-        const isAdminMode = !!currentAdmin;
-        const canEdit = canEditPrice() || canEditGov();
         
         const priceGrid=document.getElementById("priceGrid"); priceGrid.innerHTML="";
         for(let idx=0; idx<priceItems.length; idx++){
@@ -513,9 +516,9 @@
                 card.querySelector(".delete").onclick=()=>{
                     if(confirm(`Удалить "${f.name}"?`)){
                         factions.splice(idx,1);
-                        let newStats={}, newHours={}, newReasons={};
-                        for(let i=0;i<factions.length;i++){ newStats[i]=stats[i]; newHours[i]=hoursData[i]; newReasons[i]=reasonsData[i]; }
-                        stats=newStats; hoursData=newHours; reasonsData=newReasons;
+                        let newStats={}, newHours={}, newReasons={}, newProofs={};
+                        for(let i=0;i<factions.length;i++){ newStats[i]=stats[i]; newHours[i]=hoursData[i]; newReasons[i]=reasonsData[i]; newProofs[i]=proofs[i]; }
+                        stats=newStats; hoursData=newHours; reasonsData=newReasons; proofs=newProofs;
                         saveAllToLocal();
                         renderMain(); renderHours();
                     }
@@ -529,7 +532,7 @@
         let theadRow=document.querySelector("#ratingTable thead tr");
         theadRow.innerHTML='<th>Фракция / Лидер</th>';
         for(let p of priceItems) theadRow.innerHTML+=`<th>${escapeHtml(p.name)}</th>`;
-        theadRow.innerHTML+='<th>ИТОГО</th>';
+        theadRow.innerHTML+='<th>ИТОГО</th><th>Доказательства</th>';
         
         let tbody=document.getElementById("ratingBody"); tbody.innerHTML="";
         const canEditAll = currentAdmin && canEditPrice();
@@ -546,6 +549,20 @@
                 td.appendChild(inp);
             }
             let tdTotal=row.insertCell(); tdTotal.className="total-cell"; tdTotal.innerText=total;
+            
+            // Столбец "Доказательства" - поле для ссылки
+            let tdProof=row.insertCell();
+            if(canEdit){
+                let inp=document.createElement("input"); inp.type="text"; inp.placeholder="https://..."; inp.value=proofs[i]||""; inp.style.width="100%";
+                inp.onchange=((idx)=>(e)=>{ proofs[idx]=e.target.value; saveAllToLocal(); addFullLog("Изменение доказательств",factions[idx].name,`${proofs[idx]}`); renderMain(); })(i);
+                tdProof.appendChild(inp);
+            } else {
+                if(proofs[i] && proofs[i].trim()){
+                    let link=document.createElement("a"); link.href=proofs[i]; link.target="_blank"; link.className="proof-link"; link.textContent="📎 Открыть"; tdProof.appendChild(link);
+                } else {
+                    tdProof.innerHTML="—";
+                }
+            }
         }
         document.getElementById("addPriceBtn").style.display=canEditPrice()?"inline-block":"none";
         document.getElementById("addGovBtn").style.display=canEditGov()?"inline-block":"none";
@@ -815,6 +832,7 @@
             for(let p of priceItems) stats[newIdx][p.id]=0;
             hoursData[newIdx]={};
             reasonsData[newIdx]={ text:"", status:"pending", adminComment:"" };
+            proofs[newIdx]="";
             addFullLog("Добавление структуры","система",`${name} (лидер: ${leader})`);
             saveAllToLocal();
             document.getElementById("addGovModal").classList.remove("active");
