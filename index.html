@@ -16,7 +16,6 @@
             --green: #40c785;
             --orange: #f59e42;
             --red: #ff6b6b;
-            --blue: #6aa7ff;
             --radius-xl: 28px;
             --radius-lg: 20px;
             --radius-md: 14px;
@@ -94,6 +93,10 @@
         .icon-btn:hover { background: rgba(255,255,255,0.2); }
         .icon-btn.delete { color: var(--red); }
         .icon-btn.save { color: var(--green); }
+        .sync-status { font-size: 0.7rem; padding: 4px 12px; border-radius: 20px; background: rgba(0,0,0,0.3); }
+        .sync-status.synced { color: var(--green); }
+        .sync-status.syncing { color: var(--orange); }
+        .sync-status.error { color: var(--red); }
 
         .page { display: none; }
         .page.active { display: block; }
@@ -247,6 +250,7 @@
         </div>
         <div id="userInfoArea" style="display: none;" class="user-chip"></div>
         <button id="logoutBtn" class="btn btn-danger" style="display:none;">Выйти</button>
+        <div id="syncStatus" class="sync-status synced">✅ Синхронизировано</div>
     </div>
 
     <!-- СТРАНИЦА 1: РЕЙТИНГ -->
@@ -274,7 +278,7 @@
         </div>
     </div>
 
-    <!-- СТРАНИЦА 2: ЧАСЫ ЛИДЕРОВ (с причинами) -->
+    <!-- СТРАНИЦА 2: ЧАСЫ ЛИДЕРОВ -->
     <div id="hoursPage" class="page">
         <div class="card">
             <div class="card-header"><h2>⏱️ Часы лидеров (еженедельно)</h2><div><span>Норма:</span><input type="number" id="hourNorm" value="40" style="width:70px;" disabled><button id="editNormBtn" class="btn" style="display:none;">✏️</button></div></div>
@@ -296,7 +300,7 @@
         </div>
         <div class="card">
             <div class="card-header"><h2>👥 Аккаунты лидеров</h2><button id="clearAccountsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Удалить всех</button></div>
-            <div class="table-wrapper"><table id="accountsTable"><thead><tr><th>Логин</th><th>Почта</th><th>Фракция</th><th>Дата регистрации</th><th>Действия</th></tr></thead><tbody id="accountsBody"></tbody></td></div>
+            <div class="table-wrapper"><table id="accountsTable"><thead><tr><th>Логин</th><th>Почта</th><th>Фракция</th><th>Дата регистрации</th><th>Действия</th></tr></thead><tbody id="accountsBody"></tbody></table></div>
         </div>
         <div class="card">
             <div class="card-header"><h2>📋 Полный аудит действий</h2><button id="clearFullLogsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Очистить логи</button></div>
@@ -315,6 +319,118 @@
 <div id="addGovModal" class="modal"><div class="modal-content"><h3>➕ Добавить госструктуру</h3><input type="text" id="newGovName" placeholder="Название структуры"><input type="text" id="newGovLeader" placeholder="Имя лидера"><button id="confirmAddGov" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
 
 <script>
+    // ========== НАСТРОЙКИ СИНХРОНИЗАЦИИ ==========
+    // ⚠️ ЗАМЕНИТЕ ЭТУ ССЫЛКУ НА ВАШУ ИЗ GOOGLE APPS SCRIPT! ⚠️
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqEOD6gEPsL4C2TJ9qyRjrpxHhbgJAfe_7BvTjwLvD6QsS7_d5X3DdsaXTNF2qTsIlGw/exec";
+    
+    let syncTimer = null;
+    let isSyncing = false;
+    let pendingSync = false;
+    let lastSyncVersion = 0;
+
+    async function syncWithCloud() {
+        if (isSyncing) { pendingSync = true; return; }
+        isSyncing = true;
+        document.getElementById("syncStatus").className = "sync-status syncing";
+        document.getElementById("syncStatus").innerHTML = "🔄 Синхронизация...";
+        
+        try {
+            // Загрузка данных из облака
+            const loadResponse = await fetch(`${SCRIPT_URL}?action=load&t=${Date.now()}`);
+            const loadResult = await loadResponse.json();
+            
+            if (loadResult.status === "ok" && loadResult.data) {
+                const cloudData = loadResult.data;
+                
+                // Обновляем локальные данные
+                if (cloudData.priceItems) priceItems = cloudData.priceItems;
+                if (cloudData.factions) factions = cloudData.factions;
+                if (cloudData.stats) stats = cloudData.stats;
+                if (cloudData.hoursData) hoursData = cloudData.hoursData;
+                if (cloudData.reasonsData) reasonsData = cloudData.reasonsData;
+                if (cloudData.users) users = cloudData.users;
+                if (cloudData.hourNorm) hourNorm = cloudData.hourNorm;
+                if (cloudData.lastChangeTimestamp) lastChangeTimestamp = cloudData.lastChangeTimestamp;
+                if (cloudData.ratingChangeLogs) ratingChangeLogs = cloudData.ratingChangeLogs;
+                if (cloudData.fullAuditLogs) fullAuditLogs = cloudData.fullAuditLogs;
+                if (cloudData.userRegDate) userRegDate = cloudData.userRegDate;
+                
+                // Восстановление сессии
+                let ses = localStorage.getItem("ural_session");
+                if(ses) { let sess = JSON.parse(ses);
+                    if(sess.type === "admin") currentUser = { type: "admin" };
+                    else if(sess.type === "leader" && users[sess.login]) currentUser = { type: "leader", login: sess.login, factionIndex: users[sess.login].factionIndex };
+                }
+                
+                // Сохраняем в localStorage
+                saveAllToLocal();
+                
+                document.getElementById("syncStatus").className = "sync-status synced";
+                document.getElementById("syncStatus").innerHTML = "✅ Синхронизировано";
+                updateUI();
+            }
+        } catch(e) {
+            console.error("Sync error:", e);
+            document.getElementById("syncStatus").className = "sync-status error";
+            document.getElementById("syncStatus").innerHTML = "⚠️ Ошибка соединения";
+        }
+        
+        isSyncing = false;
+        if (pendingSync) { pendingSync = false; syncWithCloud(); }
+    }
+
+    async function saveToCloud() {
+        if (isSyncing) { pendingSync = true; return; }
+        isSyncing = true;
+        document.getElementById("syncStatus").className = "sync-status syncing";
+        document.getElementById("syncStatus").innerHTML = "🔄 Сохранение...";
+        
+        const dataToSave = {
+            version: Date.now(),
+            priceItems: priceItems,
+            factions: factions,
+            stats: stats,
+            hoursData: hoursData,
+            reasonsData: reasonsData,
+            users: users,
+            hourNorm: hourNorm,
+            lastChangeTimestamp: lastChangeTimestamp,
+            ratingChangeLogs: ratingChangeLogs,
+            fullAuditLogs: fullAuditLogs,
+            userRegDate: userRegDate
+        };
+        
+        try {
+            await fetch(`${SCRIPT_URL}?action=save&value=${encodeURIComponent(JSON.stringify(dataToSave))}`);
+            saveAllToLocal();
+            document.getElementById("syncStatus").className = "sync-status synced";
+            document.getElementById("syncStatus").innerHTML = "✅ Сохранено";
+        } catch(e) {
+            console.error("Save error:", e);
+            document.getElementById("syncStatus").className = "sync-status error";
+            document.getElementById("syncStatus").innerHTML = "⚠️ Ошибка сохранения";
+        }
+        
+        isSyncing = false;
+        if (pendingSync) { pendingSync = false; saveToCloud(); }
+    }
+
+    function saveAllToLocal() {
+        localStorage.setItem("ural_stats", JSON.stringify(stats));
+        localStorage.setItem("ural_users", JSON.stringify(users));
+        localStorage.setItem("ural_price_items", JSON.stringify(priceItems));
+        localStorage.setItem("ural_factions", JSON.stringify(factions));
+        localStorage.setItem("ural_lastchange", lastChangeTimestamp);
+        localStorage.setItem("ural_hournorm", hourNorm);
+        localStorage.setItem("ural_hours", JSON.stringify(hoursData));
+        localStorage.setItem("ural_reasons", JSON.stringify(reasonsData));
+        localStorage.setItem("ural_rating_logs", JSON.stringify(ratingChangeLogs));
+        localStorage.setItem("ural_full_logs", JSON.stringify(fullAuditLogs));
+        localStorage.setItem("ural_user_regdate", JSON.stringify(userRegDate));
+        if(currentUser) localStorage.setItem("ural_session", JSON.stringify({ type: currentUser.type, login: currentUser.login }));
+        else localStorage.removeItem("ural_session");
+    }
+
     async function hashPassword(p) {
         const encoder = new TextEncoder();
         const data = encoder.encode(p);
@@ -355,356 +471,4 @@
     currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + (currentWeekStart.getDay() === 0 ? -6 : 1));
 
     function getWeekDates(start) { let d=[]; for(let i=0;i<7;i++){ let n=new Date(start); n.setDate(start.getDate()+i); d.push(n.toISOString().slice(0,10)); } return d; }
-    function formatDateRange(s){ let e=new Date(s); e.setDate(s.getDate()+6); return `${s.toLocaleDateString()} - ${e.toLocaleDateString()}`; }
-
-    function addRatingLog(user, faction, field, oldV, newV) { ratingChangeLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user, faction, field, oldVal:oldV, newVal:newV }); if(ratingChangeLogs.length>500) ratingChangeLogs.pop(); saveAll(); }
-    function addFullLog(action, faction, details) { let userName = currentUser?.type==="admin"?"admin":(currentUser?.login||"гость"); fullAuditLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user:userName, faction:faction||"система", action, details:details||"" }); if(fullAuditLogs.length>500) fullAuditLogs.pop(); saveAll(); }
-
-    function loadData() {
-        try {
-            let s = localStorage.getItem("ural_stats"); if(s) stats = JSON.parse(s);
-            let u = localStorage.getItem("ural_users"); if(u) users = JSON.parse(u);
-            let pi = localStorage.getItem("ural_price_items"); if(pi) priceItems = JSON.parse(pi);
-            let fc = localStorage.getItem("ural_factions"); if(fc) factions = JSON.parse(fc);
-            let t = localStorage.getItem("ural_lastchange"); if(t) lastChangeTimestamp = parseInt(t);
-            let hn = localStorage.getItem("ural_hournorm"); if(hn) hourNorm = parseInt(hn);
-            let hd = localStorage.getItem("ural_hours"); if(hd) hoursData = JSON.parse(hd);
-            let rd = localStorage.getItem("ural_reasons"); if(rd) reasonsData = JSON.parse(rd);
-            let rcl = localStorage.getItem("ural_rating_logs"); if(rcl) ratingChangeLogs = JSON.parse(rcl);
-            let fal = localStorage.getItem("ural_full_logs"); if(fal) fullAuditLogs = JSON.parse(fal);
-            let urd = localStorage.getItem("ural_user_regdate"); if(urd) userRegDate = JSON.parse(urd);
-            let ses = localStorage.getItem("ural_session");
-            if(ses) { let sess = JSON.parse(ses);
-                if(sess.type === "admin") currentUser = { type: "admin" };
-                else if(sess.type === "leader" && users[sess.login]) currentUser = { type: "leader", login: sess.login, factionIndex: users[sess.login].factionIndex };
-            }
-        } catch(e) {}
-        for(let i=0;i<factions.length;i++) {
-            if(!stats[i]) stats[i] = {};
-            for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
-            if(!hoursData[i]) hoursData[i] = {};
-            if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
-        }
-    }
-    function saveAll() {
-        localStorage.setItem("ural_stats", JSON.stringify(stats));
-        localStorage.setItem("ural_users", JSON.stringify(users));
-        localStorage.setItem("ural_price_items", JSON.stringify(priceItems));
-        localStorage.setItem("ural_factions", JSON.stringify(factions));
-        localStorage.setItem("ural_lastchange", lastChangeTimestamp);
-        localStorage.setItem("ural_hournorm", hourNorm);
-        localStorage.setItem("ural_hours", JSON.stringify(hoursData));
-        localStorage.setItem("ural_reasons", JSON.stringify(reasonsData));
-        localStorage.setItem("ural_rating_logs", JSON.stringify(ratingChangeLogs));
-        localStorage.setItem("ural_full_logs", JSON.stringify(fullAuditLogs));
-        localStorage.setItem("ural_user_regdate", JSON.stringify(userRegDate));
-        if(currentUser) localStorage.setItem("ural_session", JSON.stringify({ type: currentUser.type, login: currentUser.login }));
-        else localStorage.removeItem("ural_session");
-    }
-
-    function calcTotal(s) { let total = 0; for(let p of priceItems) { let val = s[p.id] || 0; if(p.id === "repr") total -= val * p.value; else total += val * p.value; } return total; }
-    function calcPositive(s) { let total = 0; for(let p of priceItems) { if(p.id !== "repr") total += (s[p.id]||0) * p.value; } return total; }
-
-    function renderMain() {
-        let best=-Infinity, bestN="—", rep=0, pos=0;
-        for(let i=0;i<factions.length;i++){ let s=stats[i]||{}; let t=calcTotal(s); if(t>best){best=t;bestN=factions[i].name;} rep+=(s.repr||0); pos+=calcPositive(s); }
-        document.getElementById("bestScore").innerText=best===-Infinity?0:best;
-        document.getElementById("bestFaction").innerHTML=bestN;
-        document.getElementById("totalReprimands").innerText=rep;
-        document.getElementById("positivePoints").innerText=pos;
-        document.getElementById("lastChange").innerHTML=lastChangeTimestamp>0?new Date(lastChangeTimestamp).toLocaleString():"—";
-        const isAdmin=currentUser?.type==="admin";
-        
-        const priceGrid=document.getElementById("priceGrid"); priceGrid.innerHTML="";
-        for(let idx=0; idx<priceItems.length; idx++){
-            let p=priceItems[idx];
-            let div=document.createElement("div"); div.className="price-item";
-            if(isAdmin){
-                div.innerHTML=`
-                    <div class="price-info">
-                        <input type="text" value="${escapeHtml(p.name)}" style="flex:1; background:#0f121d; border:1px solid var(--line); border-radius:8px; padding:6px;" id="priceName_${idx}">
-                        <input type="number" value="${p.value}" style="width:80px; background:#0f121d; border:1px solid var(--line); border-radius:8px; padding:6px;" id="priceVal_${idx}">
-                    </div>
-                    <div class="price-actions">
-                        <button class="icon-btn save" data-idx="${idx}">💾 Сохранить</button>
-                        <button class="icon-btn delete" data-idx="${idx}">🗑️ Удалить</button>
-                    </div>
-                `;
-                div.querySelector(".save").onclick=()=>{
-                    let newName=document.getElementById(`priceName_${idx}`).value;
-                    let newVal=parseInt(document.getElementById(`priceVal_${idx}`).value)||0;
-                    p.name=newName; p.value=Math.max(0,newVal);
-                    saveAll(); renderMain(); renderHours();
-                };
-                div.querySelector(".delete").onclick=()=>{
-                    if(confirm(`Удалить "${p.name}"?`)){
-                        priceItems.splice(idx,1);
-                        for(let i=0;i<factions.length;i++) delete stats[i][p.id];
-                        saveAll(); renderMain(); renderHours();
-                    }
-                };
-            } else {
-                div.innerHTML=`<div class="price-info"><span class="price-name">${escapeHtml(p.name)}</span><span class="price-value">${p.value} баллов</span></div>`;
-            }
-            priceGrid.appendChild(div);
-        }
-        
-        const govGrid=document.getElementById("govGrid"); govGrid.innerHTML="";
-        for(let idx=0; idx<factions.length; idx++){
-            let f=factions[idx];
-            let card=document.createElement("div"); card.className="gov-card";
-            if(isAdmin){
-                card.innerHTML=`
-                    <input type="text" value="${escapeHtml(f.name)}" class="gov-edit-input" id="govName_${idx}">
-                    <input type="text" value="${escapeHtml(f.leader)}" class="gov-edit-input" id="govLeader_${idx}">
-                    <div class="gov-actions">
-                        <button class="icon-btn save" data-idx="${idx}">💾 Сохранить</button>
-                        <button class="icon-btn delete" data-idx="${idx}">🗑️ Удалить</button>
-                    </div>
-                `;
-                card.querySelector(".save").onclick=()=>{
-                    f.name=document.getElementById(`govName_${idx}`).value;
-                    f.leader=document.getElementById(`govLeader_${idx}`).value;
-                    saveAll(); renderMain(); renderHours();
-                };
-                card.querySelector(".delete").onclick=()=>{
-                    if(confirm(`Удалить "${f.name}"?`)){
-                        factions.splice(idx,1);
-                        let newStats={}, newHours={}, newReasons={};
-                        for(let i=0;i<factions.length;i++){ newStats[i]=stats[i]; newHours[i]=hoursData[i]; newReasons[i]=reasonsData[i]; }
-                        stats=newStats; hoursData=newHours; reasonsData=newReasons;
-                        saveAll(); renderMain(); renderHours();
-                    }
-                };
-            } else {
-                card.innerHTML=`<div class="gov-name">${escapeHtml(f.name)}</div><div class="gov-leader">👤 ${escapeHtml(f.leader)}</div>`;
-            }
-            govGrid.appendChild(card);
-        }
-        
-        let theadRow=document.querySelector("#ratingTable thead tr");
-        theadRow.innerHTML='<th>Фракция / Лидер</th>';
-        for(let p of priceItems) theadRow.innerHTML+=`<th>${escapeHtml(p.name)}</th>`;
-        theadRow.innerHTML+='<th>ИТОГО</th>';
-        
-        let tbody=document.getElementById("ratingBody"); tbody.innerHTML="";
-        for(let i=0;i<factions.length;i++){
-            let canEdit=isAdmin||(currentUser?.type==="leader"&&currentUser.factionIndex===i);
-            let s=stats[i]||{}; let total=calcTotal(s);
-            let row=tbody.insertRow();
-            row.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong><br><span style="font-size:0.7rem;">👑 ${escapeHtml(factions[i].leader)}</span>`;
-            for(let p of priceItems){
-                let td=row.insertCell();
-                let inp=document.createElement("input"); inp.type="number"; inp.value=s[p.id]||0;
-                if(!canEdit) inp.disabled=true;
-                inp.onchange=((idx,pid)=>(e)=>{ if(canEdit){ let old=stats[idx][pid]||0; let nv=Math.max(0,parseInt(e.target.value)||0); stats[idx][pid]=nv; lastChangeTimestamp=Date.now(); addRatingLog(currentUser?.login||"admin",factions[idx].name,p.name,old,nv); addFullLog("Изменение рейтинга",factions[idx].name,`${p.name}: ${old}→${nv}`); renderMain(); }})(i,p.id);
-                td.appendChild(inp);
-            }
-            let tdTotal=row.insertCell(); tdTotal.className="total-cell"; tdTotal.innerText=total;
-        }
-        document.getElementById("addPriceBtn").style.display=isAdmin?"inline-block":"none";
-        document.getElementById("addGovBtn").style.display=isAdmin?"inline-block":"none";
-    }
-
-    function renderHours() {
-        const isAdmin=currentUser?.type==="admin";
-        const isLeader=currentUser?.type==="leader";
-        const myIdx=isLeader?currentUser.factionIndex:-1;
-        const weekDates=getWeekDates(currentWeekStart);
-        const dayNames=["ПН","ВТ","СР","ЧТ","ПТ","СБ","ВС"];
-        for(let i=0;i<7;i++){ let el=document.getElementById(`day${i}`); if(el) el.innerHTML=`${dayNames[i]}<br><span style="font-size:0.65rem;">${weekDates[i].slice(5)}</span>`; }
-        document.getElementById("currentWeekRange").innerText=formatDateRange(currentWeekStart);
-        const hb=document.getElementById("hoursBody"); hb.innerHTML="";
-        const rb=document.getElementById("reasonsBody"); rb.innerHTML="";
-        for(let i=0;i<factions.length;i++){
-            const canEdit=isAdmin||(isLeader&&myIdx===i);
-            const uh=hoursData[i]||{};
-            let total=0;
-            let row=hb.insertRow();
-            row.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong><br><span style="font-size:0.7rem;">👑 ${escapeHtml(factions[i].leader)}</span>`;
-            for(let d=0;d<7;d++){
-                let td=row.insertCell();
-                let date=weekDates[d];
-                let val=uh[date]||0;
-                total+=val;
-                let inp=document.createElement("input"); inp.type="number"; inp.value=val; inp.step="0.5"; inp.style.width="60px";
-                if(!canEdit) inp.disabled=true;
-                inp.onchange=((idx,dt)=>(e)=>{ if(canEdit){ let old=hoursData[idx][dt]||0; let v=parseFloat(e.target.value)||0; if(v<0)v=0; hoursData[idx][dt]=v; saveAll(); renderHours(); }})(i,date);
-                td.appendChild(inp);
-            }
-            row.insertCell(1).innerHTML=`<span class="${total>=hourNorm?'hours-cell':'warning-cell'}">${total.toFixed(1)} ч.</span>`;
-            row.insertCell(2).innerHTML=`<span style="color:${total>=hourNorm?'var(--green)':'var(--orange)'}">${total>=hourNorm?"✅ Выполнена":"❌ Не выполнена"}</span>`;
-            
-            let reason=reasonsData[i]||{};
-            let rrow=rb.insertRow();
-            rrow.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong>`;
-            let rt=rrow.insertCell(1);
-            if(canEdit){
-                let ta=document.createElement("textarea"); ta.rows=2; ta.placeholder="Укажите причину, если не выполнили норму..."; ta.value=reason.text||"";
-                ta.onchange=((idx)=>(e)=>{ reasonsData[idx].text=e.target.value; saveAll(); renderHours(); })(i);
-                rt.appendChild(ta);
-            } else { rt.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.text)||"—"}</div>`; }
-            
-            let st=rrow.insertCell(2);
-            if(isAdmin){
-                let sel=document.createElement("select");
-                sel.innerHTML=`<option value="pending" ${reason.status==="pending"?"selected":""}>⏳ Ожидает</option><option value="approved" ${reason.status==="approved"?"selected":""}>✅ Одобрено</option><option value="rejected" ${reason.status==="rejected"?"selected":""}>❌ Отклонено</option>`;
-                sel.onchange=((idx)=>(e)=>{ reasonsData[idx].status=e.target.value; saveAll(); renderHours(); })(i);
-                st.appendChild(sel);
-            } else {
-                let cls=reason.status==="pending"?"status-pending":(reason.status==="approved"?"status-approved":"status-rejected");
-                let txt=reason.status==="pending"?"⏳ Ожидает":(reason.status==="approved"?"✅ Одобрено":"❌ Отклонено");
-                st.innerHTML=`<span class="status-badge ${cls}">${txt}</span>`;
-            }
-            
-            let ct=rrow.insertCell(3);
-            if(isAdmin){
-                let inp=document.createElement("input"); inp.type="text"; inp.placeholder="Комментарий для лидера..."; inp.value=reason.adminComment||""; inp.style.width="100%";
-                inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveAll(); renderHours(); })(i);
-                ct.appendChild(inp);
-            } else { ct.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.adminComment)||"—"}</div>`; }
-        }
-        let normInp=document.getElementById("hourNorm");
-        normInp.value=hourNorm; normInp.disabled=!isAdmin;
-        document.getElementById("editNormBtn").style.display=isAdmin?"inline-block":"none";
-        normInp.onchange=(e)=>{ if(isAdmin){ hourNorm=Math.max(0,parseFloat(e.target.value)||0); saveAll(); renderHours(); } };
-    }
-
-    function renderAdmin() {
-        let rlb=document.getElementById("ratingLogsBody"); rlb.innerHTML="";
-        ratingChangeLogs.slice(0,200).forEach(l=>{ let r=rlb.insertRow(); r.insertCell(0).innerHTML=l.time; r.insertCell(1).innerHTML=`<span style="color:var(--accent);">${l.user}</span>`; r.insertCell(2).innerHTML=l.faction; r.insertCell(3).innerHTML=l.field; r.insertCell(4).innerHTML=l.oldVal; r.insertCell(5).innerHTML=l.newVal; });
-        let ab=document.getElementById("accountsBody"); ab.innerHTML="";
-        for(let [login,data] of Object.entries(users)){
-            let r=ab.insertRow();
-            r.insertCell(0).innerHTML=login;
-            r.insertCell(1).innerHTML=data.email;
-            r.insertCell(2).innerHTML=factions[data.factionIndex]?.name||"—";
-            r.insertCell(3).innerHTML=userRegDate[login]||"—";
-            let delBtn=document.createElement("button"); delBtn.textContent="🗑️ Удалить"; delBtn.className="btn"; delBtn.style.background="rgba(220,70,70,0.3)"; delBtn.onclick=()=>{ if(confirm(`Удалить ${login}?`)){ delete users[login]; delete userRegDate[login]; saveAll(); renderAdmin(); } };
-            r.insertCell(4).appendChild(delBtn);
-        }
-        let flb=document.getElementById("fullLogsBody"); flb.innerHTML="";
-        fullAuditLogs.slice(0,200).forEach(l=>{ let r=flb.insertRow(); r.insertCell(0).innerHTML=l.time; r.insertCell(1).innerHTML=`<span style="color:var(--accent);">${l.user}</span>`; r.insertCell(2).innerHTML=l.faction; r.insertCell(3).innerHTML=l.action; r.insertCell(4).innerHTML=l.details; });
-    }
-
-    function updateUI() {
-        const isAdmin=currentUser?.type==="admin";
-        document.getElementById("authButtons").style.display=currentUser?"none":"flex";
-        document.getElementById("userInfoArea").style.display=currentUser?"flex":"none";
-        document.getElementById("logoutBtn").style.display=currentUser?"block":"none";
-        document.getElementById("adminTabBtn").style.display=isAdmin?"inline-block":"none";
-        document.getElementById("adminFooter").style.display=isAdmin?"block":"none";
-        if(currentUser){
-            if(isAdmin) document.getElementById("userInfoArea").innerHTML="👑 Администратор";
-            else document.getElementById("userInfoArea").innerHTML=`👤 Лидер: ${factions[currentUser.factionIndex]?.name} (${currentUser.login})`;
-        }
-        renderMain(); renderHours(); if(isAdmin) renderAdmin();
-    }
-
-    function escapeHtml(s){ return String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
-
-    async function register(login,email,pass,factionIdx){
-        if(!login||!email||!pass) return "Заполните всё";
-        if(!/^[a-zA-Z0-9_]{3,20}$/.test(login)) return "Логин: 3-20 букв, цифр, _";
-        if(!/^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/.test(email)) return "Неверная почта";
-        if(users[login]) return "Логин занят";
-        if(factionIdx===undefined||factionIdx<0||factionIdx>=factions.length) return "Выберите фракцию";
-        let hash=await hashPassword(pass);
-        users[login]={passwordHash:hash,email,factionIndex:factionIdx,login};
-        userRegDate[login]=new Date().toLocaleString();
-        saveAll(); addFullLog("Регистрация",factions[factionIdx].name,`Новый лидер: ${login}`);
-        return null;
-    }
-    async function login(login,pass){
-        let u=users[login];
-        if(!u) return "Неверный логин";
-        let hash=await hashPassword(pass);
-        if(u.passwordHash!==hash) return "Неверный пароль";
-        currentUser={type:"leader",login:login,factionIndex:u.factionIndex};
-        saveAll(); addFullLog("Вход",factions[u.factionIndex].name,`Лидер ${login} вошёл`);
-        updateUI();
-        return null;
-    }
-    async function adminLogin(login,pass){
-        if(login==="admin"&&pass==="admin123"){ currentUser={type:"admin"}; saveAll(); addFullLog("Вход","система","Админ вошёл"); updateUI(); return null; }
-        return "Неверные данные (admin / admin123)";
-    }
-    function logout(){ if(currentUser) addFullLog("Выход","система",`${currentUser.type==="admin"?"Админ":currentUser.login} вышел`); currentUser=null; saveAll(); updateUI(); }
-
-    function initModals(){
-        document.getElementById("showRegisterBtn").onclick=()=>{
-            let s=document.getElementById("regFaction");
-            s.innerHTML='<option value="">Выберите фракцию</option>'+factions.map((f,i)=>`<option value="${i}">${f.name}</option>`).join('');
-            document.getElementById("registerModal").classList.add("active");
-        };
-        document.getElementById("showLoginBtn").onclick=()=>document.getElementById("loginModal").classList.add("active");
-        document.getElementById("adminLoginBtn").onclick=()=>document.getElementById("adminModal").classList.add("active");
-        document.getElementById("doRegister").onclick=async()=>{
-            let err=await register(document.getElementById("regLogin").value.trim(),document.getElementById("regEmail").value.trim(),document.getElementById("regPass").value,parseInt(document.getElementById("regFaction").value));
-            if(err) alert(err); else { alert("Регистрация успешна!"); document.getElementById("registerModal").classList.remove("active"); }
-        };
-        document.getElementById("doLogin").onclick=async()=>{
-            let err=await login(document.getElementById("loginUser").value.trim(),document.getElementById("loginPassword").value);
-            if(err) alert(err); else document.getElementById("loginModal").classList.remove("active");
-        };
-        document.getElementById("doAdmin").onclick=async()=>{
-            let err=await adminLogin(document.getElementById("adminUser").value.trim(),document.getElementById("adminPass").value);
-            if(err) alert(err); else document.getElementById("adminModal").classList.remove("active");
-        };
-        document.getElementById("logoutBtn").onclick=()=>logout();
-        document.querySelectorAll(".closeModal").forEach(b=>b.onclick=()=>b.closest(".modal")?.classList.remove("active"));
-        window.onclick=(e)=>{ if(e.target.classList&&e.target.classList.contains("modal")) e.target.classList.remove("active"); };
-        document.querySelectorAll(".tab-btn").forEach(btn=>{
-            btn.onclick=()=>{
-                document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-                btn.classList.add("active");
-                document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-                document.getElementById(btn.dataset.page+"Page").classList.add("active");
-                if(btn.dataset.page==="admin"&&currentUser?.type==="admin") renderAdmin();
-            };
-        });
-        document.getElementById("prevWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()-7); renderHours(); };
-        document.getElementById("nextWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()+7); renderHours(); };
-        document.getElementById("editNormBtn").onclick=()=>alert("Измените норму в поле выше");
-        document.getElementById("clearRatingLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить историю изменений?")){ ratingChangeLogs=[]; saveAll(); renderAdmin(); } });
-        document.getElementById("clearAccountsBtn")?.addEventListener("click",()=>{ if(confirm("Удалить всех пользователей?")){ users={}; userRegDate={}; saveAll(); renderAdmin(); } });
-        document.getElementById("clearFullLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить логи?")){ fullAuditLogs=[]; saveAll(); renderAdmin(); } });
-        document.getElementById("addPriceBtn").onclick=()=>{ document.getElementById("addPriceModal").classList.add("active"); };
-        document.getElementById("confirmAddPrice").onclick=()=>{
-            let name=document.getElementById("newPriceName").value.trim();
-            let val=parseInt(document.getElementById("newPriceValue").value)||0;
-            if(!name){ alert("Введите название"); return; }
-            let newId="custom_"+Date.now();
-            priceItems.push({ id:newId, name:name, value:Math.max(0,val) });
-            for(let i=0;i<factions.length;i++) if(!stats[i][newId]) stats[i][newId]=0;
-            saveAll(); addFullLog("Добавление пункта прайса","система",`${name}: ${val}`);
-            document.getElementById("addPriceModal").classList.remove("active");
-            document.getElementById("newPriceName").value="";
-            document.getElementById("newPriceValue").value="";
-            renderMain(); renderHours();
-        };
-        document.getElementById("addGovBtn").onclick=()=>{ document.getElementById("addGovModal").classList.add("active"); };
-        document.getElementById("confirmAddGov").onclick=()=>{
-            let name=document.getElementById("newGovName").value.trim();
-            let leader=document.getElementById("newGovLeader").value.trim() || "—";
-            if(!name){ alert("Введите название"); return; }
-            factions.push({ id:"gov_"+Date.now(), name:name, leader:leader });
-            let newIdx=factions.length-1;
-            stats[newIdx]={};
-            for(let p of priceItems) stats[newIdx][p.id]=0;
-            hoursData[newIdx]={};
-            reasonsData[newIdx]={ text:"", status:"pending", adminComment:"" };
-            saveAll(); addFullLog("Добавление структуры","система",`${name} (лидер: ${leader})`);
-            document.getElementById("addGovModal").classList.remove("active");
-            document.getElementById("newGovName").value="";
-            document.getElementById("newGovLeader").value="";
-            renderMain(); renderHours();
-        };
-    }
-
-    loadData();
-    initModals();
-    updateUI();
-</script>
-</body>
-</html>
+    function formatDateRange(s){ let e=new Date(s); e.setDate(s.getDate()+6); return `${s.toLocaleDateString()} -
