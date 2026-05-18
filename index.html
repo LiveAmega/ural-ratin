@@ -16,7 +16,6 @@
             --green: #40c785;
             --orange: #f59e42;
             --red: #ff6b6b;
-            --blue: #6aa7ff;
             --radius-xl: 28px;
             --radius-lg: 20px;
             --radius-md: 14px;
@@ -264,45 +263,24 @@
         <div class="card">
             <div class="card-header"><h2>⏱️ Часы лидеров (еженедельно)</h2><div><span>Норма:</span><input type="number" id="hourNorm" value="40" style="width:70px;" disabled><button id="editNormBtn" class="btn" style="display:none;">✏️</button></div></div>
             <div class="date-nav"><button id="prevWeekBtn">◀ Пред. неделя</button><span id="currentWeekRange" style="font-weight:bold;"></span><button id="nextWeekBtn">След. неделя ▶</button></div>
-            <div class="table-wrapper"><table id="hoursTable"><thead><tr><th>Фракция / Лидер</th><th id="day0"></th><th id="day1"></th><th id="day2"></th><th id="day3"></th><th id="day4"></th><th id="day5"></th><th id="day6"></th><th>Итого</th><th>Статус</th></tr></thead><tbody id="hoursBody"></tbody><tr></div>
+            <div class="table-wrapper"><table id="hoursTable"><thead><tr><th>Фракция / Лидер</th><th id="day0"></th><th id="day1"></th><th id="day2"></th><th id="day3"></th><th id="day4"></th><th id="day5"></th><th id="day6"></th><th>Итого</th><th>Статус</th></tr></thead><tbody id="hoursBody"></tbody></table></div>
         </div>
-
-        <div class="card">
-            <div class="card-header"><h2>📝 Причины невыполнения нормы</h2></div>
-            <div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина (от лидера)</th><th>Статус</th><th>Комментарий админа</th></tr></thead><tbody id="reasonsBody"></tbody></table></div>
-        </div>
+        <div class="card"><div class="card-header"><h2>📝 Причины невыполнения нормы</h2></div><div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody id="reasonsBody"></tbody></table></div></div>
     </div>
 
-    <!-- СТРАНИЦА 3: АДМИН-ПАНЕЛЬ (только для админа) -->
+    <!-- СТРАНИЦА 3: АДМИН-ПАНЕЛЬ -->
     <div id="adminPage" class="page">
         <div class="card">
-            <div class="card-header"><h2>📊 База данных: История изменений рейтинга</h2><button id="clearRatingLogsBtn" class="btn btn-danger" style="padding:4px 12px;">🗑️ Очистить</button></div>
-            <div class="table-wrapper">
-                <table id="ratingLogsTable">
-                    <thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Поле</th><th>Было</th><th>Стало</th></tr></thead>
-                    <tbody id="ratingLogsBody"></tbody>
-                </table>
-            </div>
+            <div class="card-header"><h2>📊 История изменений рейтинга</h2><button id="clearRatingLogsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Очистить</button></div>
+            <div class="table-wrapper"><table id="ratingLogsTable"><thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Поле</th><th>Было</th><th>Стало</th></tr></thead><tbody id="ratingLogsBody"></tbody></table></div>
         </div>
-
         <div class="card">
-            <div class="card-header"><h2>👥 База данных: Аккаунты лидеров</h2><button id="clearAccountsBtn" class="btn btn-danger" style="padding:4px 12px;">🗑️ Очистить всех</button></div>
-            <div class="table-wrapper">
-                <table id="accountsTable">
-                    <thead><tr><th>Логин</th><th>Почта</th><th>Фракция</th><th>Дата регистрации</th><th>Действия</th></tr></thead>
-                    <tbody id="accountsBody"></tbody>
-                </table>
-            </div>
+            <div class="card-header"><h2>👥 Аккаунты лидеров</h2><button id="clearAccountsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Удалить всех</button></div>
+            <div class="table-wrapper"><table id="accountsTable"><thead><tr><th>Логин</th><th>Почта</th><th>Фракция</th><th>Дата регистрации</th><th>Действия</th></tr></thead><tbody id="accountsBody"></tbody></table></div>
         </div>
-
         <div class="card">
-            <div class="card-header"><h2>📋 База данных: Полный аудит действий</h2><button id="clearFullLogsBtn" class="btn btn-danger" style="padding:4px 12px;">🗑️ Очистить логи</button></div>
-            <div class="table-wrapper">
-                <table id="fullLogsTable">
-                    <thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Действие</th><th>Детали</th></tr></thead>
-                    <tbody id="fullLogsBody"></tbody>
-                </table>
-            </div>
+            <div class="card-header"><h2>📋 Полный аудит действий</h2><button id="clearFullLogsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Очистить логи</button></div>
+            <div class="table-wrapper"><table id="fullLogsTable"><thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Действие</th><th>Детали</th></tr></thead><tbody id="fullLogsBody"></tbody></table></div>
         </div>
     </div>
 
@@ -315,11 +293,11 @@
 <div id="adminModal" class="modal"><div class="modal-content"><h3>👑 Админ</h3><input type="text" id="adminUser" value="admin"><input type="password" id="adminPass" placeholder="Пароль"><button id="doAdmin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
 
 <script>
-    async function hashPassword(password) {
+    async function hashPassword(p) {
         const encoder = new TextEncoder();
-        const data = encoder.encode(password);
+        const data = encoder.encode(p);
         const hash = await crypto.subtle.digest('SHA-256', data);
-        return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
 
     const factions = [
@@ -340,28 +318,15 @@
 
     let stats = {}, users = {}, currentUser = null, lastChangeTimestamp = Date.now(), hourNorm = 40;
     let hoursData = {}, reasonsData = {};
-    let ratingChangeLogs = []; // логи изменений рейтинга
-    let fullAuditLogs = [];    // полный аудит всех действий
-    let userRegDate = {};      // дата регистрации пользователя
-
+    let ratingChangeLogs = [], fullAuditLogs = [], userRegDate = {};
     let currentWeekStart = new Date();
     currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + (currentWeekStart.getDay() === 0 ? -6 : 1));
 
-    function getWeekDates(start) { let dates = []; for(let i=0;i<7;i++){ let d=new Date(start); d.setDate(start.getDate()+i); dates.push(d.toISOString().slice(0,10)); } return dates; }
-    function formatDateRange(start){ let end=new Date(start); end.setDate(start.getDate()+6); return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`; }
+    function getWeekDates(start) { let d=[]; for(let i=0;i<7;i++){ let n=new Date(start); n.setDate(start.getDate()+i); d.push(n.toISOString().slice(0,10)); } return d; }
+    function formatDateRange(s){ let e=new Date(s); e.setDate(s.getDate()+6); return `${s.toLocaleDateString()} - ${e.toLocaleDateString()}`; }
 
-    function addRatingLog(user, faction, field, oldVal, newVal) {
-        ratingChangeLogs.unshift({ time: new Date().toLocaleString('ru-RU'), user: user, faction: faction, field: field, oldVal: oldVal, newVal: newVal });
-        if(ratingChangeLogs.length > 500) ratingChangeLogs.pop();
-        saveAll();
-    }
-
-    function addFullLog(action, faction, details) {
-        let userName = currentUser?.type === "admin" ? "admin" : (currentUser?.login || "гость");
-        fullAuditLogs.unshift({ time: new Date().toLocaleString('ru-RU'), user: userName, faction: faction || "система", action: action, details: details || "" });
-        if(fullAuditLogs.length > 500) fullAuditLogs.pop();
-        saveAll();
-    }
+    function addRatingLog(user, faction, field, oldV, newV) { ratingChangeLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user, faction, field, oldVal:oldV, newVal:newV }); if(ratingChangeLogs.length>500) ratingChangeLogs.pop(); saveAll(); }
+    function addFullLog(action, faction, details) { let userName = currentUser?.type==="admin"?"admin":(currentUser?.login||"гость"); fullAuditLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user:userName, faction:faction||"система", action, details:details||"" }); if(fullAuditLogs.length>500) fullAuditLogs.pop(); saveAll(); }
 
     function loadData() {
         try {
@@ -387,7 +352,6 @@
             if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
         }
     }
-
     function saveAll() {
         localStorage.setItem("ural_stats", JSON.stringify(stats));
         localStorage.setItem("ural_users", JSON.stringify(users));
@@ -406,93 +370,94 @@
     function calcTotal(s) { let pos = s.gmp*priceList.gmp + s.mp*priceList.mp + s.supply*priceList.supply + s.press*priceList.press + s.apps*priceList.apps + s.lawyer*priceList.lawyer + s.acts*priceList.acts; return pos - (s.repr * priceList.repr); }
     function calcPositive(s) { return s.gmp*priceList.gmp + s.mp*priceList.mp + s.supply*priceList.supply + s.press*priceList.press + s.apps*priceList.apps + s.lawyer*priceList.lawyer + s.acts*priceList.acts; }
 
-    function renderMainPage() {
-        let bestScore = -Infinity, bestFactionName = "—", totalReprimands = 0, totalPositive = 0;
-        for(let i=0;i<factions.length;i++){ let s=stats[i]||{}; let t=calcTotal(s); if(t>bestScore){bestScore=t;bestFactionName=factions[i].name;} totalReprimands+=(s.repr||0); totalPositive+=calcPositive(s); }
-        document.getElementById("bestScore").innerText = bestScore===-Infinity?0:bestScore;
-        document.getElementById("bestFaction").innerHTML = bestFactionName;
-        document.getElementById("totalReprimands").innerText = totalReprimands;
-        document.getElementById("positivePoints").innerText = totalPositive;
-        document.getElementById("lastChange").innerHTML = lastChangeTimestamp>0 ? new Date(lastChangeTimestamp).toLocaleString() : "—";
-
-        const isAdmin = currentUser?.type === "admin";
-        const priceGrid = document.getElementById("priceGrid"); priceGrid.innerHTML = "";
-        for(let [key,name] of Object.entries(priceNames)) {
-            let div = document.createElement("div"); div.className = "price-item";
+    function renderMain() {
+        let best=-Infinity, bestN="—", rep=0, pos=0;
+        for(let i=0;i<factions.length;i++){ let s=stats[i]||{}; let t=calcTotal(s); if(t>best){best=t;bestN=factions[i].name;} rep+=(s.repr||0); pos+=calcPositive(s); }
+        document.getElementById("bestScore").innerText=best===-Infinity?0:best;
+        document.getElementById("bestFaction").innerHTML=bestN;
+        document.getElementById("totalReprimands").innerText=rep;
+        document.getElementById("positivePoints").innerText=pos;
+        document.getElementById("lastChange").innerHTML=lastChangeTimestamp>0?new Date(lastChangeTimestamp).toLocaleString():"—";
+        const isAdmin=currentUser?.type==="admin";
+        const priceGrid=document.getElementById("priceGrid"); priceGrid.innerHTML="";
+        for(let [k,n] of Object.entries(priceNames)){
+            let div=document.createElement("div"); div.className="price-item";
             if(isAdmin){
-                div.innerHTML = `<span>${name}</span><input type="number" value="${priceList[key]}" style="width:70px">`;
-                div.querySelector("input").onchange = (e) => { let old=priceList[key]; priceList[key]=Math.max(0,parseInt(e.target.value)||0); saveAll(); addFullLog("Изменение прайса", "система", `${name}: ${old}→${priceList[key]}`); renderMainPage(); };
-            } else { div.innerHTML = `<span>${name}</span><span class="price-value">${priceList[key]} баллов</span>`; }
+                div.innerHTML=`<span>${n}</span><input type="number" value="${priceList[k]}" style="width:70px">`;
+                div.querySelector("input").onchange=(e)=>{ let old=priceList[k]; priceList[k]=Math.max(0,parseInt(e.target.value)||0); saveAll(); addFullLog("Изменение прайса","система",`${n}: ${old}→${priceList[k]}`); renderMain(); };
+            } else { div.innerHTML=`<span>${n}</span><span class="price-value">${priceList[k]} баллов</span>`; }
             priceGrid.appendChild(div);
         }
-        const govGrid = document.getElementById("govGrid"); govGrid.innerHTML = "";
+        const govGrid=document.getElementById("govGrid"); govGrid.innerHTML="";
         factions.forEach((f,idx)=>{
-            let card = document.createElement("div"); card.className = "gov-card";
+            let card=document.createElement("div"); card.className="gov-card";
             if(isAdmin){
-                card.innerHTML = `<div class="gov-name">${f.name}</div><input type="text" value="${escapeHtml(f.leader)}" style="width:100%">`;
-                card.querySelector("input").onchange = (e) => { let old=factions[idx].leader; factions[idx].leader=e.target.value; saveAll(); addFullLog("Изменение лидера", f.name, `${old}→${e.target.value}`); renderMainPage(); };
-            } else { card.innerHTML = `<div class="gov-name">${f.name}</div><div class="gov-leader">👤 ${f.leader}</div>`; }
+                card.innerHTML=`<div class="gov-name">${f.name}</div><input type="text" value="${escapeHtml(f.leader)}" style="width:100%">`;
+                card.querySelector("input").onchange=(e)=>{ let old=factions[idx].leader; factions[idx].leader=e.target.value; saveAll(); addFullLog("Изменение лидера",f.name,`${old}→${e.target.value}`); renderMain(); };
+            } else { card.innerHTML=`<div class="gov-name">${f.name}</div><div class="gov-leader">👤 ${f.leader}</div>`; }
             govGrid.appendChild(card);
         });
-        let tbody = document.getElementById("ratingBody"); tbody.innerHTML = "";
+        let tbody=document.getElementById("ratingBody"); tbody.innerHTML="";
         for(let i=0;i<factions.length;i++){
-            let canEdit = isAdmin || (currentUser?.type==="leader" && currentUser.factionIndex===i);
-            let s = stats[i];
-            let total = calcTotal(s);
-            let row = tbody.insertRow();
-            row.insertCell(0).innerHTML = `<strong>${factions[i].name}</strong><br><span style="font-size:0.7rem;">👑 ${factions[i].leader}</span>`;
+            let canEdit=isAdmin||(currentUser?.type==="leader"&&currentUser.factionIndex===i);
+            let s=stats[i]; let total=calcTotal(s);
+            let row=tbody.insertRow();
+            row.insertCell(0).innerHTML=`<strong>${factions[i].name}</strong><br><span style="font-size:0.7rem;">👑 ${factions[i].leader}</span>`;
             for(let f of fields){
-                let td = row.insertCell();
-                let inp = document.createElement("input"); inp.type="number"; inp.value=s[f];
+                let td=row.insertCell();
+                let inp=document.createElement("input"); inp.type="number"; inp.value=s[f];
                 if(!canEdit) inp.disabled=true;
-                inp.onchange = ((idx,fld)=> (e)=>{ if(canEdit){ let old=stats[idx][fld]; let newVal=Math.max(0,parseInt(e.target.value)||0); stats[idx][fld]=newVal; lastChangeTimestamp=Date.now(); saveAll(); addRatingLog(currentUser?.login||"admin", factions[idx].name, fieldRus[fld], old, newVal); addFullLog("Изменение рейтинга", factions[idx].name, `${fieldRus[fld]}: ${old}→${newVal}`); renderMainPage(); }})(i,f);
+                inp.onchange=((idx,fld)=>(e)=>{ if(canEdit){ let old=stats[idx][fld]; let nv=Math.max(0,parseInt(e.target.value)||0); stats[idx][fld]=nv; lastChangeTimestamp=Date.now(); saveAll(); addRatingLog(currentUser?.login||"admin",factions[idx].name,fieldRus[fld],old,nv); addFullLog("Изменение рейтинга",factions[idx].name,`${fieldRus[fld]}: ${old}→${nv}`); renderMain(); }})(i,f);
                 td.appendChild(inp);
             }
-            let tdTotal = row.insertCell(); tdTotal.className="total-cell"; tdTotal.innerText=total;
+            let tdTotal=row.insertCell(); tdTotal.className="total-cell"; tdTotal.innerText=total;
         }
     }
 
-    function renderHoursPage() {
-        const isAdmin = currentUser?.type === "admin";
-        const isLeader = currentUser?.type === "leader";
-        const myIdx = isLeader ? currentUser.factionIndex : -1;
-        const weekDates = getWeekDates(currentWeekStart);
-        const dayNames = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"];
-        for(let i=0;i<7;i++) { let el = document.getElementById(`day${i}`); if(el) el.innerHTML = `${dayNames[i]}<br><span style="font-size:0.65rem;">${weekDates[i].slice(5)}</span>`; }
-        document.getElementById("currentWeekRange").innerText = formatDateRange(currentWeekStart);
-        
-        const hoursBody = document.getElementById("hoursBody"); hoursBody.innerHTML = "";
-        const reasonsBody = document.getElementById("reasonsBody"); reasonsBody.innerHTML = "";
-        
+    function renderHours() {
+        const isAdmin=currentUser?.type==="admin";
+        const isLeader=currentUser?.type==="leader";
+        const myIdx=isLeader?currentUser.factionIndex:-1;
+        const weekDates=getWeekDates(currentWeekStart);
+        const dayNames=["ПН","ВТ","СР","ЧТ","ПТ","СБ","ВС"];
+        for(let i=0;i<7;i++){ let el=document.getElementById(`day${i}`); if(el) el.innerHTML=`${dayNames[i]}<br><span style="font-size:0.65rem;">${weekDates[i].slice(5)}</span>`; }
+        document.getElementById("currentWeekRange").innerText=formatDateRange(currentWeekStart);
+        const hb=document.getElementById("hoursBody"); hb.innerHTML="";
+        const rb=document.getElementById("reasonsBody"); rb.innerHTML="";
         for(let i=0;i<factions.length;i++){
-            const canEdit = isAdmin || (isLeader && myIdx === i);
-            const userHours = hoursData[i] || {};
-            let totalHours = 0;
-            let row = hoursBody.insertRow();
-            row.insertCell(0).innerHTML = `<strong>${factions[i].name}</strong><br><span style="font-size:0.7rem;">👑 ${factions[i].leader}</span>`;
+            const canEdit=isAdmin||(isLeader&&myIdx===i);
+            const uh=hoursData[i]||{};
+            let total=0;
+            let row=hb.insertRow();
+            row.insertCell(0).innerHTML=`<strong>${factions[i].name}</strong><br><span style="font-size:0.7rem;">👑 ${factions[i].leader}</span>`;
             for(let d=0;d<7;d++){
-                let td = row.insertCell();
-                let date = weekDates[d];
-                let val = userHours[date] || 0;
-                totalHours += val;
-                let inp = document.createElement("input"); inp.type="number"; inp.value=val; inp.step="0.5"; inp.style.width="60px";
+                let td=row.insertCell();
+                let date=weekDates[d];
+                let val=uh[date]||0;
+                total+=val;
+                let inp=document.createElement("input"); inp.type="number"; inp.value=val; inp.step="0.5"; inp.style.width="60px";
                 if(!canEdit) inp.disabled=true;
-                inp.onchange = ((idx, dt)=> (e)=>{ if(canEdit){ let old=hoursData[idx][dt]||0; let v=parseFloat(e.target.value)||0; if(v<0)v=0; hoursData[idx][dt]=v; saveAll(); addFullLog("Изменение часов", factions[idx].name, `${dt}: ${old}→${v}`); renderHoursPage(); }})(i,date);
+                inp.onchange=((idx,dt)=>(e)=>{ if(canEdit){ let old=hoursData[idx][dt]||0; let v=parseFloat(e.target.value)||0; if(v<0)v=0; hoursData[idx][dt]=v; saveAll(); addFullLog("Изменение часов",factions[idx].name,`${dt}: ${old}→${v}`); renderHours(); }})(i,date);
                 td.appendChild(inp);
             }
-            row.insertCell(1).innerHTML = `<span class="${totalHours>=hourNorm?'hours-cell':'warning-cell'}">${totalHours.toFixed(1)} ч.</span>`;
-            row.insertCell(2).innerHTML = `<span style="color:${totalHours>=hourNorm?'var(--green)':'var(--orange)'}">${totalHours>=hourNorm?"✅ Выполнена":"❌ Не выполнена"}</span>`;
-            
-            let reason = reasonsData[i] || { text: "", status: "pending", adminComment: "" };
-            let reasonRow = reasonsBody.insertRow();
-            reasonRow.insertCell(0).innerHTML = `<strong>${factions[i].name}</strong>`;
-            let reasonTd = reasonRow.insertCell(1);
+            row.insertCell(1).innerHTML=`<span class="${total>=hourNorm?'hours-cell':'warning-cell'}">${total.toFixed(1)} ч.</span>`;
+            row.insertCell(2).innerHTML=`<span style="color:${total>=hourNorm?'var(--green)':'var(--orange)'}">${total>=hourNorm?"✅ Выполнена":"❌ Не выполнена"}</span>`;
+            let reason=reasonsData[i]||{};
+            let rrow=rb.insertRow();
+            rrow.insertCell(0).innerHTML=`<strong>${factions[i].name}</strong>`;
+            let rt=rrow.insertCell(1);
             if(canEdit){
-                let ta = document.createElement("textarea"); ta.rows=2; ta.placeholder="Укажите причину..."; ta.value=reason.text||"";
-                ta.onchange = ((idx)=> (e)=>{ let old=reasonsData[idx].text||""; reasonsData[idx].text=e.target.value; saveAll(); addFullLog("Изменение причины", factions[idx].name, `${old}→${e.target.value}`); renderHoursPage(); })(i);
-                reasonTd.appendChild(ta);
-            } else { reasonTd.innerHTML = `<div style="color:var(--muted);">${reason.text || "—"}</div>`; }
-            let statusTd = reasonRow.insertCell(2);
+                let ta=document.createElement("textarea"); ta.rows=2; ta.placeholder="Причина..."; ta.value=reason.text||"";
+                ta.onchange=((idx)=>(e)=>{ let old=reasonsData[idx].text||""; reasonsData[idx].text=e.target.value; saveAll(); addFullLog("Изменение причины",factions[idx].name,`${old}→${e.target.value}`); renderHours(); })(i);
+                rt.appendChild(ta);
+            } else { rt.innerHTML=`<div style="color:var(--muted);">${reason.text||"—"}</div>`; }
+            let st=rrow.insertCell(2);
             if(isAdmin){
-                let select = document.createElement("select");
-                select.innerHTML = `<option value="pending" ${reason.status==="pending"?"selected":""}>⏳ Ожидает</option><option value="approved" ${reason.status==="
+                let sel=document.createElement("select");
+                sel.innerHTML=`<option value="pending" ${reason.status==="pending"?"selected":""}>⏳ Ожидает</option><option value="approved" ${reason.status==="approved"?"selected":""}>✅ Одобрено</option><option value="rejected" ${reason.status==="rejected"?"selected":""}>❌ Отклонено</option>`;
+                sel.onchange=((idx)=>(e)=>{ reasonsData[idx].status=e.target.value; saveAll(); addFullLog("Изменение статуса",factions[idx].name,`${reason.status}→${e.target.value}`); renderHours(); })(i);
+                st.appendChild(sel);
+            } else {
+                let cls=reason.status==="pending"?"status-pending":(reason.status==="approved"?"status-approved":"status-rejected");
+                let txt=reason.status==="pending"?"⏳ Ожидает":(reason.status==="approved"?"✅ Одобрено":"❌ Отклонено");
+                st.innerHTML=`<span class="status-badge ${cls}">${txt}</span>`;
