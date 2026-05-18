@@ -289,7 +289,7 @@
 
         <div class="card">
             <div class="card-header"><h2>📝 Причины невыполнения нормы</h2></div>
-            <div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина (от лидера)</th><th>Статус</th><th>Комментарий админа</th></tr></thead><tbody id="reasonsBody"></tbody></table></div>
+            <div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина (от лидера)</th><th>Статус</th><th>Комментарий админа</th></tr></thead><tbody id="reasonsBody"></tbody><table></div>
         </div>
     </div>
 
@@ -305,7 +305,7 @@
         </div>
         <div class="card">
             <div class="card-header"><h2>📋 Полный аудит действий</h2><button id="clearFullLogsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Очистить логи</button></div>
-            <div class="table-wrapper"><table id="fullLogsTable"><thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Действие</th><th>Детали</th></tr></thead><tbody id="fullLogsBody"></tbody></table></div>
+            <div class="table-wrapper"><table id="fullLogsTable"><thead><td><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Действие</th><th>Детали</th></tr></thead><tbody id="fullLogsBody"></tbody></table></div>
         </div>
     </div>
 
@@ -319,19 +319,147 @@
 <div id="addPriceModal" class="modal"><div class="modal-content"><h3>➕ Добавить пункт прайс-листа</h3><input type="text" id="newPriceName" placeholder="Название"><input type="number" id="newPriceValue" placeholder="Стоимость (баллы)"><button id="confirmAddPrice" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
 <div id="addGovModal" class="modal"><div class="modal-content"><h3>➕ Добавить госструктуру</h3><input type="text" id="newGovName" placeholder="Название структуры"><input type="text" id="newGovLeader" placeholder="Имя лидера"><button id="confirmAddGov" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // ========== НАСТРОЙКИ SUPABASE ==========
-    // ⚠️ ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ ИЗ SUPABASE! ⚠️
-    const SUPABASE_URL = "https://ural-rating.supabase.co";  // Ваш Project URL
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiYnRybm5pdWh2ZWFhc2h5YWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODA1MzQsImV4cCI6MjA5NDY1NjUzNH0.HasFzL9YGZkasXq6eqpC8OQmzOs2RleZTE7JEFxTY9s";  // Ваш anon public key
+    // ========== НАСТРОЙКИ СИНХРОНИЗАЦИИ ==========
+    // ⚠️ ЗАМЕНИТЕ ЭТУ ССЫЛКУ НА ВАШУ ИЗ GOOGLE APPS SCRIPT!
+    // Инструкция внутри кода
+    const SCRIPT_URL = "https://script.google.com/macros/s/ВАШ_ИДЕНТИФИКАТОР/exec";
     
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    let currentUser = null;
     let isSyncing = false;
-    let updateTimeout = null;
-    
+    let syncTimer = null;
+    let lastSyncVersion = 0;
+
+    async function syncWithCloud() {
+        if (isSyncing) return;
+        isSyncing = true;
+        const statusDiv = document.getElementById("syncStatus");
+        statusDiv.className = "sync-status syncing";
+        statusDiv.innerHTML = "🔄 Синхронизация...";
+        
+        try {
+            const response = await fetch(`${SCRIPT_URL}?action=load&t=${Date.now()}`, { method: 'GET', mode: 'cors' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const result = await response.json();
+            
+            if (result.status === "ok" && result.data) {
+                const cloudVersion = result.data.version || 0;
+                if (cloudVersion > lastSyncVersion) {
+                    // Обновляем локальные данные из облака
+                    if (result.data.priceItems) priceItems = result.data.priceItems;
+                    if (result.data.factions) factions = result.data.factions;
+                    if (result.data.stats) stats = result.data.stats;
+                    if (result.data.hoursData) hoursData = result.data.hoursData;
+                    if (result.data.reasonsData) reasonsData = result.data.reasonsData;
+                    if (result.data.users) users = result.data.users;
+                    if (result.data.hourNorm !== undefined) hourNorm = result.data.hourNorm;
+                    if (result.data.lastChangeTimestamp) lastChangeTimestamp = result.data.lastChangeTimestamp;
+                    if (result.data.ratingChangeLogs) ratingChangeLogs = result.data.ratingChangeLogs;
+                    if (result.data.fullAuditLogs) fullAuditLogs = result.data.fullAuditLogs;
+                    if (result.data.userRegDate) userRegDate = result.data.userRegDate;
+                    lastSyncVersion = cloudVersion;
+                    saveAllToLocal();
+                    updateUI();
+                }
+                statusDiv.className = "sync-status synced";
+                statusDiv.innerHTML = "✅ Синхронизировано";
+            } else {
+                throw new Error("Нет данных");
+            }
+        } catch(e) {
+            console.error("Sync error:", e);
+            statusDiv.className = "sync-status error";
+            statusDiv.innerHTML = "⚠️ Офлайн режим";
+            // Загружаем из localStorage
+            loadAllFromLocal();
+            updateUI();
+        }
+        isSyncing = false;
+    }
+
+    async function saveToCloud() {
+        const statusDiv = document.getElementById("syncStatus");
+        const newVersion = Date.now();
+        
+        const dataToSave = {
+            version: newVersion,
+            priceItems: priceItems,
+            factions: factions,
+            stats: stats,
+            hoursData: hoursData,
+            reasonsData: reasonsData,
+            users: users,
+            hourNorm: hourNorm,
+            lastChangeTimestamp: lastChangeTimestamp,
+            ratingChangeLogs: ratingChangeLogs,
+            fullAuditLogs: fullAuditLogs,
+            userRegDate: userRegDate
+        };
+        
+        try {
+            await fetch(`${SCRIPT_URL}?action=save&value=${encodeURIComponent(JSON.stringify(dataToSave))}`, { method: 'GET', mode: 'cors' });
+            lastSyncVersion = newVersion;
+            saveAllToLocal();
+            statusDiv.className = "sync-status synced";
+            statusDiv.innerHTML = "✅ Сохранено";
+        } catch(e) {
+            console.error("Save error:", e);
+            statusDiv.className = "sync-status error";
+            statusDiv.innerHTML = "⚠️ Ошибка сохранения";
+            saveAllToLocal();
+        }
+    }
+
+    function saveAllToLocal() {
+        const allData = {
+            version: lastSyncVersion,
+            priceItems, factions, stats, hoursData, reasonsData, users, hourNorm, lastChangeTimestamp,
+            ratingChangeLogs, fullAuditLogs, userRegDate,
+            currentUser: currentUser ? { type: currentUser.type, login: currentUser.login, factionIndex: currentUser.factionIndex } : null
+        };
+        localStorage.setItem("ural_all_data", JSON.stringify(allData));
+    }
+
+    function loadAllFromLocal() {
+        const saved = localStorage.getItem("ural_all_data");
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                if (data.priceItems) priceItems = data.priceItems;
+                if (data.factions) factions = data.factions;
+                if (data.stats) stats = data.stats;
+                if (data.hoursData) hoursData = data.hoursData;
+                if (data.reasonsData) reasonsData = data.reasonsData;
+                if (data.users) users = data.users;
+                if (data.hourNorm !== undefined) hourNorm = data.hourNorm;
+                if (data.lastChangeTimestamp) lastChangeTimestamp = data.lastChangeTimestamp;
+                if (data.ratingChangeLogs) ratingChangeLogs = data.ratingChangeLogs;
+                if (data.fullAuditLogs) fullAuditLogs = data.fullAuditLogs;
+                if (data.userRegDate) userRegDate = data.userRegDate;
+                if (data.version) lastSyncVersion = data.version;
+                if (data.currentUser) {
+                    if (data.currentUser.type === "admin") currentUser = { type: "admin" };
+                    else if (data.currentUser.type === "leader" && users[data.currentUser.login]) {
+                        currentUser = { type: "leader", login: data.currentUser.login, factionIndex: data.currentUser.factionIndex };
+                    }
+                }
+            } catch(e) {}
+        }
+        // Инициализация недостающих данных
+        for(let i=0;i<factions.length;i++) {
+            if(!stats[i]) stats[i] = {};
+            for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
+            if(!hoursData[i]) hoursData[i] = {};
+            if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
+        }
+    }
+
+    async function hashPassword(p) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(p);
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
     // Динамические данные
     let priceItems = [
         { id: "gmp", name: "ГМП", value: 250 },
@@ -358,7 +486,7 @@
         { id: "gov11", name: "ФСБ", leader: "—" }
     ];
 
-    let stats = {}, users = {}, lastChangeTimestamp = Date.now(), hourNorm = 40;
+    let stats = {}, users = {}, currentUser = null, lastChangeTimestamp = Date.now(), hourNorm = 40;
     let hoursData = {}, reasonsData = {};
     let ratingChangeLogs = [], fullAuditLogs = [], userRegDate = {};
     let currentWeekStart = new Date();
@@ -367,133 +495,8 @@
     function getWeekDates(start) { let d=[]; for(let i=0;i<7;i++){ let n=new Date(start); n.setDate(start.getDate()+i); d.push(n.toISOString().slice(0,10)); } return d; }
     function formatDateRange(s){ let e=new Date(s); e.setDate(s.getDate()+6); return `${s.toLocaleDateString()} - ${e.toLocaleDateString()}`; }
 
-    function addRatingLog(user, faction, field, oldV, newV) { ratingChangeLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user, faction, field, oldVal:oldV, newVal:newV }); if(ratingChangeLogs.length>500) ratingChangeLogs.pop(); saveToSupabase(); }
-    function addFullLog(action, faction, details) { let userName = currentUser?.type==="admin"?"admin":(currentUser?.login||"гость"); fullAuditLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user:userName, faction:faction||"система", action, details:details||"" }); if(fullAuditLogs.length>500) fullAuditLogs.pop(); saveToSupabase(); }
-
-    async function loadFromSupabase() {
-        const statusDiv = document.getElementById("syncStatus");
-        statusDiv.className = "sync-status syncing";
-        statusDiv.innerHTML = "🔄 Загрузка...";
-        
-        try {
-            const { data, error } = await supabase
-                .from('site_data')
-                .select('data')
-                .eq('id', 1)
-                .single();
-            
-            if (error && error.code !== 'PGRST116') throw error;
-            
-            if (data && data.data && Object.keys(data.data).length > 0) {
-                const cloudData = data.data;
-                if (cloudData.priceItems) priceItems = cloudData.priceItems;
-                if (cloudData.factions) factions = cloudData.factions;
-                if (cloudData.stats) stats = cloudData.stats;
-                if (cloudData.hoursData) hoursData = cloudData.hoursData;
-                if (cloudData.reasonsData) reasonsData = cloudData.reasonsData;
-                if (cloudData.users) users = cloudData.users;
-                if (cloudData.hourNorm !== undefined) hourNorm = cloudData.hourNorm;
-                if (cloudData.lastChangeTimestamp) lastChangeTimestamp = cloudData.lastChangeTimestamp;
-                if (cloudData.ratingChangeLogs) ratingChangeLogs = cloudData.ratingChangeLogs;
-                if (cloudData.fullAuditLogs) fullAuditLogs = cloudData.fullAuditLogs;
-                if (cloudData.userRegDate) userRegDate = cloudData.userRegDate;
-            }
-            
-            // Восстановление сессии
-            const savedSession = localStorage.getItem("ural_session");
-            if (savedSession) {
-                const sess = JSON.parse(savedSession);
-                if (sess.type === "admin") currentUser = { type: "admin" };
-                else if (sess.type === "leader" && users[sess.login]) {
-                    currentUser = { type: "leader", login: sess.login, factionIndex: users[sess.login].factionIndex };
-                }
-            }
-            
-            // Инициализация данных
-            for(let i=0;i<factions.length;i++) {
-                if(!stats[i]) stats[i] = {};
-                for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
-                if(!hoursData[i]) hoursData[i] = {};
-                if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
-            }
-            
-            statusDiv.className = "sync-status synced";
-            statusDiv.innerHTML = "✅ Синхронизировано";
-            updateUI();
-        } catch(e) {
-            console.error("Load error:", e);
-            statusDiv.className = "sync-status error";
-            statusDiv.innerHTML = "⚠️ Ошибка загрузки";
-            // Загружаем из localStorage
-            loadFromLocal();
-            updateUI();
-        }
-    }
-    
-    function loadFromLocal() {
-        const saved = localStorage.getItem("ural_backup");
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                if (data.priceItems) priceItems = data.priceItems;
-                if (data.factions) factions = data.factions;
-                if (data.stats) stats = data.stats;
-                if (data.hoursData) hoursData = data.hoursData;
-                if (data.reasonsData) reasonsData = data.reasonsData;
-                if (data.users) users = data.users;
-                if (data.hourNorm !== undefined) hourNorm = data.hourNorm;
-                if (data.lastChangeTimestamp) lastChangeTimestamp = data.lastChangeTimestamp;
-                if (data.ratingChangeLogs) ratingChangeLogs = data.ratingChangeLogs;
-                if (data.fullAuditLogs) fullAuditLogs = data.fullAuditLogs;
-                if (data.userRegDate) userRegDate = data.userRegDate;
-            } catch(e) {}
-        }
-        for(let i=0;i<factions.length;i++) {
-            if(!stats[i]) stats[i] = {};
-            for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
-            if(!hoursData[i]) hoursData[i] = {};
-            if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
-        }
-    }
-    
-    async function saveToSupabase() {
-        if (updateTimeout) clearTimeout(updateTimeout);
-        updateTimeout = setTimeout(async () => {
-            const statusDiv = document.getElementById("syncStatus");
-            statusDiv.className = "sync-status syncing";
-            statusDiv.innerHTML = "🔄 Сохранение...";
-            
-            const allData = {
-                priceItems, factions, stats, hoursData, reasonsData, users, hourNorm, lastChangeTimestamp,
-                ratingChangeLogs, fullAuditLogs, userRegDate
-            };
-            
-            // Сохраняем локально как бэкап
-            localStorage.setItem("ural_backup", JSON.stringify(allData));
-            
-            try {
-                const { error } = await supabase
-                    .from('site_data')
-                    .upsert({ id: 1, data: allData, updated_at: new Date() });
-                
-                if (error) throw error;
-                
-                statusDiv.className = "sync-status synced";
-                statusDiv.innerHTML = "✅ Сохранено";
-            } catch(e) {
-                console.error("Save error:", e);
-                statusDiv.className = "sync-status error";
-                statusDiv.innerHTML = "⚠️ Ошибка сохранения";
-            }
-        }, 500);
-    }
-
-    async function hashPassword(p) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(p);
-        const hash = await crypto.subtle.digest('SHA-256', data);
-        return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-    }
+    function addRatingLog(user, faction, field, oldV, newV) { ratingChangeLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user, faction, field, oldVal:oldV, newVal:newV }); if(ratingChangeLogs.length>500) ratingChangeLogs.pop(); saveToCloud(); }
+    function addFullLog(action, faction, details) { let userName = currentUser?.type==="admin"?"admin":(currentUser?.login||"гость"); fullAuditLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user:userName, faction:faction||"система", action, details:details||"" }); if(fullAuditLogs.length>500) fullAuditLogs.pop(); saveToCloud(); }
 
     function calcTotal(s) { let total = 0; for(let p of priceItems) { let val = s[p.id] || 0; if(p.id === "repr") total -= val * p.value; else total += val * p.value; } return total; }
     function calcPositive(s) { let total = 0; for(let p of priceItems) { if(p.id !== "repr") total += (s[p.id]||0) * p.value; } return total; }
@@ -524,16 +527,17 @@
                     </div>
                 `;
                 div.querySelector(".save").onclick=()=>{
-                    p.name=document.getElementById(`priceName_${idx}`).value;
-                    p.value=Math.max(0,parseInt(document.getElementById(`priceVal_${idx}`).value)||0);
-                    saveToSupabase();
+                    let newName=document.getElementById(`priceName_${idx}`).value;
+                    let newVal=parseInt(document.getElementById(`priceVal_${idx}`).value)||0;
+                    p.name=newName; p.value=Math.max(0,newVal);
+                    saveToCloud();
                     renderMain(); renderHours();
                 };
                 div.querySelector(".delete").onclick=()=>{
                     if(confirm(`Удалить "${p.name}"?`)){
                         priceItems.splice(idx,1);
                         for(let i=0;i<factions.length;i++) delete stats[i][p.id];
-                        saveToSupabase();
+                        saveToCloud();
                         renderMain(); renderHours();
                     }
                 };
@@ -559,7 +563,7 @@
                 card.querySelector(".save").onclick=()=>{
                     f.name=document.getElementById(`govName_${idx}`).value;
                     f.leader=document.getElementById(`govLeader_${idx}`).value;
-                    saveToSupabase();
+                    saveToCloud();
                     renderMain(); renderHours();
                 };
                 card.querySelector(".delete").onclick=()=>{
@@ -568,7 +572,7 @@
                         let newStats={}, newHours={}, newReasons={};
                         for(let i=0;i<factions.length;i++){ newStats[i]=stats[i]; newHours[i]=hoursData[i]; newReasons[i]=reasonsData[i]; }
                         stats=newStats; hoursData=newHours; reasonsData=newReasons;
-                        saveToSupabase();
+                        saveToCloud();
                         renderMain(); renderHours();
                     }
                 };
@@ -625,7 +629,7 @@
                 total+=val;
                 let inp=document.createElement("input"); inp.type="number"; inp.value=val; inp.step="0.5"; inp.style.width="60px";
                 if(!canEdit) inp.disabled=true;
-                inp.onchange=((idx,dt)=>(e)=>{ if(canEdit){ hoursData[idx][dt]=Math.max(0,parseFloat(e.target.value)||0); saveToSupabase(); renderHours(); }})(i,date);
+                inp.onchange=((idx,dt)=>(e)=>{ if(canEdit){ let old=hoursData[idx][dt]||0; let v=parseFloat(e.target.value)||0; if(v<0)v=0; hoursData[idx][dt]=v; saveToCloud(); renderHours(); }})(i,date);
                 td.appendChild(inp);
             }
             row.insertCell(1).innerHTML=`<span class="${total>=hourNorm?'hours-cell':'warning-cell'}">${total.toFixed(1)} ч.</span>`;
@@ -636,8 +640,8 @@
             rrow.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong>`;
             let rt=rrow.insertCell(1);
             if(canEdit){
-                let ta=document.createElement("textarea"); ta.rows=2; ta.placeholder="Укажите причину..."; ta.value=reason.text||"";
-                ta.onchange=((idx)=>(e)=>{ reasonsData[idx].text=e.target.value; saveToSupabase(); renderHours(); })(i);
+                let ta=document.createElement("textarea"); ta.rows=2; ta.placeholder="Укажите причину, если не выполнили норму..."; ta.value=reason.text||"";
+                ta.onchange=((idx)=>(e)=>{ reasonsData[idx].text=e.target.value; saveToCloud(); renderHours(); })(i);
                 rt.appendChild(ta);
             } else { rt.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.text)||"—"}</div>`; }
             
@@ -645,7 +649,7 @@
             if(isAdmin){
                 let sel=document.createElement("select");
                 sel.innerHTML=`<option value="pending" ${reason.status==="pending"?"selected":""}>⏳ Ожидает</option><option value="approved" ${reason.status==="approved"?"selected":""}>✅ Одобрено</option><option value="rejected" ${reason.status==="rejected"?"selected":""}>❌ Отклонено</option>`;
-                sel.onchange=((idx)=>(e)=>{ reasonsData[idx].status=e.target.value; saveToSupabase(); renderHours(); })(i);
+                sel.onchange=((idx)=>(e)=>{ reasonsData[idx].status=e.target.value; saveToCloud(); renderHours(); })(i);
                 st.appendChild(sel);
             } else {
                 let cls=reason.status==="pending"?"status-pending":(reason.status==="approved"?"status-approved":"status-rejected");
@@ -655,15 +659,15 @@
             
             let ct=rrow.insertCell(3);
             if(isAdmin){
-                let inp=document.createElement("input"); inp.type="text"; inp.placeholder="Комментарий..."; inp.value=reason.adminComment||""; inp.style.width="100%";
-                inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveToSupabase(); renderHours(); })(i);
+                let inp=document.createElement("input"); inp.type="text"; inp.placeholder="Комментарий для лидера..."; inp.value=reason.adminComment||""; inp.style.width="100%";
+                inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveToCloud(); renderHours(); })(i);
                 ct.appendChild(inp);
             } else { ct.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.adminComment)||"—"}</div>`; }
         }
         let normInp=document.getElementById("hourNorm");
         normInp.value=hourNorm; normInp.disabled=!isAdmin;
         document.getElementById("editNormBtn").style.display=isAdmin?"inline-block":"none";
-        normInp.onchange=(e)=>{ if(isAdmin){ hourNorm=Math.max(0,parseFloat(e.target.value)||0); saveToSupabase(); renderHours(); } };
+        normInp.onchange=(e)=>{ if(isAdmin){ hourNorm=Math.max(0,parseFloat(e.target.value)||0); saveToCloud(); renderHours(); } };
     }
 
     function renderAdmin() {
@@ -676,7 +680,7 @@
             r.insertCell(1).innerHTML=data.email;
             r.insertCell(2).innerHTML=factions[data.factionIndex]?.name||"—";
             r.insertCell(3).innerHTML=userRegDate[login]||"—";
-            let delBtn=document.createElement("button"); delBtn.textContent="🗑️ Удалить"; delBtn.className="btn"; delBtn.style.background="rgba(220,70,70,0.3)"; delBtn.onclick=()=>{ if(confirm(`Удалить ${login}?`)){ delete users[login]; delete userRegDate[login]; saveToSupabase(); renderAdmin(); } };
+            let delBtn=document.createElement("button"); delBtn.textContent="🗑️ Удалить"; delBtn.className="btn"; delBtn.style.background="rgba(220,70,70,0.3)"; delBtn.onclick=()=>{ if(confirm(`Удалить ${login}?`)){ delete users[login]; delete userRegDate[login]; saveToCloud(); renderAdmin(); } };
             r.insertCell(4).appendChild(delBtn);
         }
         let flb=document.getElementById("fullLogsBody"); flb.innerHTML="";
@@ -709,39 +713,25 @@
         users[login]={passwordHash:hash,email,factionIndex:factionIdx,login};
         userRegDate[login]=new Date().toLocaleString();
         addFullLog("Регистрация",factions[factionIdx].name,`Новый лидер: ${login}`);
-        saveToSupabase();
+        saveToCloud();
         return null;
     }
-    
     async function login(login,pass){
         let u=users[login];
         if(!u) return "Неверный логин";
         let hash=await hashPassword(pass);
         if(u.passwordHash!==hash) return "Неверный пароль";
         currentUser={type:"leader",login:login,factionIndex:u.factionIndex};
-        localStorage.setItem("ural_session", JSON.stringify({ type: "leader", login: login }));
+        saveAllToLocal();
         addFullLog("Вход",factions[u.factionIndex].name,`Лидер ${login} вошёл`);
         updateUI();
         return null;
     }
-    
     async function adminLogin(login,pass){
-        if(login==="admin"&&pass==="admin123"){ 
-            currentUser={type:"admin"}; 
-            localStorage.setItem("ural_session", JSON.stringify({ type: "admin" }));
-            addFullLog("Вход","система","Админ вошёл"); 
-            updateUI(); 
-            return null; 
-        }
+        if(login==="admin"&&pass==="admin123"){ currentUser={type:"admin"}; saveAllToLocal(); addFullLog("Вход","система","Админ вошёл"); updateUI(); return null; }
         return "Неверные данные (admin / admin123)";
     }
-    
-    function logout(){ 
-        if(currentUser) addFullLog("Выход","система",`${currentUser.type==="admin"?"Админ":currentUser.login} вышел`); 
-        currentUser=null; 
-        localStorage.removeItem("ural_session");
-        updateUI(); 
-    }
+    function logout(){ if(currentUser) addFullLog("Выход","система",`${currentUser.type==="admin"?"Админ":currentUser.login} вышел`); currentUser=null; saveAllToLocal(); updateUI(); }
 
     function initModals(){
         document.getElementById("showRegisterBtn").onclick=()=>{
@@ -778,9 +768,9 @@
         document.getElementById("prevWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()-7); renderHours(); };
         document.getElementById("nextWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()+7); renderHours(); };
         document.getElementById("editNormBtn").onclick=()=>alert("Измените норму в поле выше");
-        document.getElementById("clearRatingLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить историю изменений?")){ ratingChangeLogs=[]; saveToSupabase(); renderAdmin(); } });
-        document.getElementById("clearAccountsBtn")?.addEventListener("click",()=>{ if(confirm("Удалить всех пользователей?")){ users={}; userRegDate={}; saveToSupabase(); renderAdmin(); } });
-        document.getElementById("clearFullLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить логи?")){ fullAuditLogs=[]; saveToSupabase(); renderAdmin(); } });
+        document.getElementById("clearRatingLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить историю изменений?")){ ratingChangeLogs=[]; saveToCloud(); renderAdmin(); } });
+        document.getElementById("clearAccountsBtn")?.addEventListener("click",()=>{ if(confirm("Удалить всех пользователей?")){ users={}; userRegDate={}; saveToCloud(); renderAdmin(); } });
+        document.getElementById("clearFullLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить логи?")){ fullAuditLogs=[]; saveToCloud(); renderAdmin(); } });
         document.getElementById("addPriceBtn").onclick=()=>{ document.getElementById("addPriceModal").classList.add("active"); };
         document.getElementById("confirmAddPrice").onclick=()=>{
             let name=document.getElementById("newPriceName").value.trim();
@@ -790,7 +780,7 @@
             priceItems.push({ id:newId, name:name, value:Math.max(0,val) });
             for(let i=0;i<factions.length;i++) if(!stats[i][newId]) stats[i][newId]=0;
             addFullLog("Добавление пункта прайса","система",`${name}: ${val}`);
-            saveToSupabase();
+            saveToCloud();
             document.getElementById("addPriceModal").classList.remove("active");
             document.getElementById("newPriceName").value="";
             document.getElementById("newPriceValue").value="";
@@ -808,7 +798,7 @@
             hoursData[newIdx]={};
             reasonsData[newIdx]={ text:"", status:"pending", adminComment:"" };
             addFullLog("Добавление структуры","система",`${name} (лидер: ${leader})`);
-            saveToSupabase();
+            saveToCloud();
             document.getElementById("addGovModal").classList.remove("active");
             document.getElementById("newGovName").value="";
             document.getElementById("newGovLeader").value="";
@@ -816,13 +806,15 @@
         };
     }
 
-    // Запуск
-    loadFromSupabase();
+    // Инициализация
+    loadAllFromLocal();
     initModals();
     updateUI();
     
-    // Автосохранение каждые 30 секунд
-    setInterval(() => { if(currentUser) saveToSupabase(); }, 30000);
+    // Автосинхронизация каждые 10 секунд
+    setInterval(() => { syncWithCloud(); }, 10000);
+    // Первая синхронизация
+    setTimeout(() => { syncWithCloud(); }, 1000);
 </script>
 </body>
 </html>
