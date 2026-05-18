@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Уральск Онлайн | Firebase PRO MAX 2</title>
+<title>Уральск Онлайн | PRO LOGIN UPGRADE</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -26,7 +26,8 @@ input{width:100%;padding:8px;margin:3px 0;border-radius:8px;border:1px solid #22
 <body>
 
 <div class="card">
-<h2>⚡ Уральск Онлайн (PRO MAX 2)</h2>
+<h2>⚡ Уральск Онлайн (PRO LOGIN UPGRADE)</h2>
+<div id="status">Ожидание входа...</div>
 <div id="userBox"></div>
 <div class="small" id="roleBox"></div>
 <button id="logoutBtn" class="danger hidden" onclick="logout()">Выйти</button>
@@ -37,7 +38,9 @@ input{width:100%;padding:8px;margin:3px 0;border-radius:8px;border:1px solid #22
 <input id="email" placeholder="Email" />
 <input id="pass" type="password" placeholder="Пароль" />
 <button class="primary" onclick="login()">Войти</button>
-<button onclick="register()">Регистрация</button>
+
+<hr style="border:1px solid #222;margin:10px 0"/>
+<button class="green" onclick="googleLogin()">Войти через Google</button>
 </div>
 
 <div id="app" class="hidden">
@@ -47,7 +50,7 @@ input{width:100%;padding:8px;margin:3px 0;border-radius:8px;border:1px solid #22
 <button onclick="show('hours')">⏱ Часы</button>
 <button onclick="show('reasons')">🧾 Причины</button>
 <button onclick="show('logs')">📜 Логи</button>
-<button onclick="show('admin')" id="adminTab" class="hidden">👑 Админ</button>
+<button onclick="show('admin')">👑 Админ</button>
 </div>
 
 <div id="rating" class="card">
@@ -87,51 +90,64 @@ input{width:100%;padding:8px;margin:3px 0;border-radius:8px;border:1px solid #22
 </div>
 
 <script>
-const firebaseConfig={
-apiKey:"AIzaSyDz3tFFVILAnAP3u_FFnxejFoDIuLDoQP4",
-authDomain:"uralskonline.firebaseapp.com",
-databaseURL:"https://uralskonline-default-rtdb.europe-west1.firebasedatabase.app",
-projectId:"uralskonline",
-storageBucket:"uralskonline.firebasestorage.app",
-messagingSenderId:"738077138136",
-appId:"1:738077138136:web:c68f31b26c44562a9f0bad"
+const firebaseConfig = {
+  apiKey: "AIzaSyDz3tFFVILAnAP3u_FFnxejFoDIuLDoQP4",
+  authDomain: "uralskonline.firebaseapp.com",
+  databaseURL: "https://uralskonline-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "uralskonline",
+  storageBucket: "uralskonline.firebasestorage.app",
+  messagingSenderId: "738077138136",
+  appId: "1:738077138136:web:c68f31b26c44562a9f0bad"
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.database();
+const auth = firebase.auth();
+const db = firebase.database();
 
-const ADMIN_EMAIL="admin@gmail.com";
-const LEADERS=["leader@gmail.com"];
+const ADMIN_EMAIL = "admin@gmail.com";
+const WHITELIST = ["admin@gmail.com", "leader@gmail.com"];
 
-let role="user";
-let cache={};
+let role = "user";
+let cache = {};
 
 function logAction(type,data){
   db.ref('uralsk/logs').push({type,data,user:auth.currentUser?auth.currentUser.email:"unknown",time:Date.now()});
 }
 
 function login(){auth.signInWithEmailAndPassword(email.value,pass.value).catch(e=>alert(e.message));}
-function register(){auth.createUserWithEmailAndPassword(email.value,pass.value).catch(e=>alert(e.message));}
+
+function googleLogin(){
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(e=>alert(e.message));
+}
+
 function logout(){auth.signOut();}
 
 auth.onAuthStateChanged(u=>{
   if(u){
+    if(!WHITELIST.includes(u.email)){
+      document.getElementById('status').innerText="❌ Нет доступа";
+      auth.signOut();
+      return;
+    }
+
     document.getElementById('auth').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     document.getElementById('logoutBtn').classList.remove('hidden');
+
     document.getElementById('userBox').innerText=u.email;
 
-    role=(u.email===ADMIN_EMAIL)?"admin":(LEADERS.includes(u.email)?"leader":"user");
+    role = u.email===ADMIN_EMAIL ? "admin" : "user";
     document.getElementById('roleBox').innerText="Роль: "+role;
 
-    if(role==='admin') document.getElementById('adminTab').classList.remove('hidden');
+    document.getElementById('status').innerText="✔ Доступ разрешён";
 
     listenDB();
   } else {
     document.getElementById('auth').classList.remove('hidden');
     document.getElementById('app').classList.add('hidden');
     document.getElementById('logoutBtn').classList.add('hidden');
+    document.getElementById('status').innerText="Ожидание входа...";
   }
 });
 
@@ -140,21 +156,16 @@ function show(id){['rating','hours','reasons','logs','admin'].forEach(x=>documen
 function listenDB(){db.ref('uralsk').on('value',s=>{cache=s.val()||{};renderAll();});}
 
 function renderAll(){renderRating();renderHours();renderReasons();renderLogs();}
-
 function renderRating(){const r=cache.rating||{};ratingTable.innerHTML='<tr><th>Фракция</th><th>Баллы</th></tr>'+Object.keys(r).map(k=>`<tr><td>${k}</td><td>${r[k]}</td></tr>`).join('');}
-
 function renderHours(){const h=cache.hours||{};hoursTable.innerHTML='<tr><th>Фракция</th><th>Часы</th></tr>'+Object.keys(h).map(k=>`<tr><td>${k}</td><td>${h[k]}</td></tr>`).join('');}
-
 function renderReasons(){const r=cache.reasons||{};reasonsTable.innerHTML='<tr><th>Игрок</th><th>Причина</th></tr>'+Object.keys(r).map(k=>`<tr><td>${k}</td><td>${r[k]}</td></tr>`).join('');}
-
 function renderLogs(){logsBox.innerText=JSON.stringify(cache.logs||{},null,2);}
 
-function setRating(){if(role==='user')return alert('No access');db.ref('uralsk/rating/'+factionName.value).set(Number(factionPoints.value));logAction('rating',{faction:factionName.value});}
-function updateHours(){if(role==='user')return alert('No access');db.ref('uralsk/hours/'+hourFaction.value).transaction(v=>(v||0)+Number(hourValue.value));logAction('hours',{faction:hourFaction.value});}
-function addReason(){if(role==='user')return alert('No access');db.ref('uralsk/reasons/'+reasonUser.value).set(reasonText.value);logAction('reason',{user:reasonUser.value});}
+function setRating(){if(role!=='admin')return alert('No access');db.ref('uralsk/rating/'+factionName.value).set(Number(factionPoints.value));logAction('rating',{});}
+function updateHours(){if(role!=='admin')return alert('No access');db.ref('uralsk/hours/'+hourFaction.value).transaction(v=>(v||0)+Number(hourValue.value));logAction('hours',{});}
+function addReason(){if(role!=='admin')return alert('No access');db.ref('uralsk/reasons/'+reasonUser.value).set(reasonText.value);logAction('reason',{});}
 
-function loadAdmin(){if(role!=='admin')return;db.ref('uralsk').once('value',s=>adminBox.innerText=JSON.stringify(s.val(),null,2));}
+function loadAdmin(){db.ref('uralsk').once('value',s=>adminBox.innerText=JSON.stringify(s.val(),null,2));}
 </script>
-
 </body>
 </html>
