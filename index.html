@@ -16,6 +16,7 @@
             --green: #40c785;
             --orange: #f59e42;
             --red: #ff6b6b;
+            --blue: #6aa7ff;
             --purple: #a855f7;
             --radius-xl: 28px;
             --radius-lg: 20px;
@@ -89,16 +90,7 @@
         .btn-primary { background: var(--accent); border-color: var(--accent); color: #0c0f18; font-weight: 600; }
         .btn-danger { background: rgba(220,70,70,0.2); border-color: rgba(255,100,100,0.3); }
         .btn-success { background: rgba(64,199,133,0.2); border-color: var(--green); color: var(--green); }
-        .btn-purple { background: rgba(168,85,247,0.2); border-color: var(--purple); color: var(--purple); }
         .user-chip { background: rgba(0,0,0,0.45); border-radius: 60px; padding: 5px 16px; border-left: 2px solid var(--accent); }
-        .icon-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; color: var(--text); }
-        .icon-btn:hover { background: rgba(255,255,255,0.2); }
-        .icon-btn.delete { color: var(--red); }
-        .icon-btn.save { color: var(--green); }
-        .role-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; margin-left: 8px; }
-        .role-superadmin { background: rgba(215,168,93,0.3); color: var(--accent); }
-        .role-main-curator { background: rgba(168,85,247,0.3); color: var(--purple); }
-        .role-deputy-curator { background: rgba(106,167,255,0.3); color: var(--blue); }
 
         .page { display: none; }
         .page.active { display: block; }
@@ -243,12 +235,11 @@
         <div class="nav-tabs">
             <button class="tab-btn active" data-page="main">📊 Рейтинг</button>
             <button class="tab-btn" data-page="hours">⏱️ Часы лидеров</button>
-            <button class="tab-btn" data-page="admin" id="adminTabBtn" style="display:none;">🔐 Админ-панель</button>
         </div>
         <div class="btn-group" id="authButtons">
             <button class="btn btn-primary" id="showRegisterBtn">📝 Регистрация</button>
             <button class="btn" id="showLoginBtn">🔑 Вход</button>
-            <button class="btn" id="showAdminLoginBtn">👑 Админ вход</button>
+            <button class="btn" id="adminLoginBtn">👑 Админ</button>
         </div>
         <div id="userInfoArea" style="display: none;" class="user-chip"></div>
         <button id="logoutBtn" class="btn btn-danger" style="display:none;">Выйти</button>
@@ -276,7 +267,7 @@
 
         <div class="card">
             <div class="card-header"><h2>📊 Рейтинг эффективности</h2></div>
-            <div class="table-wrapper"><table id="ratingTable"><thead><tr><th>Фракция / Лидер</th><th id="ratingHeaders"></th><th>ИТОГО</th></tr></thead><tbody id="ratingBody"></tbody></td></div>
+            <div class="table-wrapper"><table id="ratingTable"><thead><tr><th>Фракция / Лидер</th><th id="ratingHeaders"></th><th>ИТОГО</th></tr></thead><tbody id="ratingBody"></tbody></table></div>
         </div>
     </div>
 
@@ -294,63 +285,27 @@
         </div>
     </div>
 
-    <!-- СТРАНИЦА 3: АДМИН-ПАНЕЛЬ -->
-    <div id="adminPage" class="page">
-        <div class="card">
-            <div class="card-header"><h2>👑 Управление администраторами</h2><button id="addAdminBtn" class="btn btn-purple">➕ Добавить администратора</button></div>
-            <div class="table-wrapper"><table id="adminsTable"><thead><tr><th>Логин</th><th>Роль</th><th>Действия</th></tr></thead><tbody id="adminsBody"></tbody></table></div>
-        </div>
-        <div class="card">
-            <div class="card-header"><h2>🔐 Сменить пароль</h2></div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <input type="password" id="newAdminPassword" placeholder="Новый пароль" style="width: 200px;">
-                <button id="changePasswordBtn" class="btn btn-primary">Сменить пароль</button>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header"><h2>📊 История изменений рейтинга</h2><button id="clearRatingLogsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Очистить</button></div>
-            <div class="table-wrapper"><table id="ratingLogsTable"><thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Поле</th><th>Было</th><th>Стало</th></tr></thead><tbody id="ratingLogsBody"></tbody></tr></div>
-        </div>
-        <div class="card">
-            <div class="card-header"><h2>👥 Аккаунты лидеров</h2><button id="clearAccountsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Удалить всех</button></div>
-            <div class="table-wrapper"><table id="accountsTable"><thead><tr><th>Логин</th><th>Почта</th><th>Фракция</th><th>Дата регистрации</th><th>Действия</th></tr></thead><tbody id="accountsBody"></tbody></table></div>
-        </div>
-        <div class="card">
-            <div class="card-header"><h2>📋 Полный аудит действий</h2><button id="clearFullLogsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Очистить логи</button></div>
-            <div class="table-wrapper"><table id="fullLogsTable"><thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Действие</th><th>Детали</th></tr></thead><tbody id="fullLogsBody"></tbody></tr></div>
-        </div>
-    </div>
-
-    <div id="adminFooter" class="footer-note" style="display:none;">🔐 Админ-панель</div>
+    <div class="footer-note">Админ: admin / admin123</div>
 </div>
 
 <!-- МОДАЛЬНЫЕ ОКНА -->
 <div id="registerModal" class="modal"><div class="modal-content"><h3>📝 Регистрация лидера</h3><select id="regFaction"></select><input type="text" id="regLogin" placeholder="Логин"><input type="email" id="regEmail" placeholder="Почта"><input type="password" id="regPass" placeholder="Пароль"><button id="doRegister" class="btn btn-primary">Зарегистрироваться</button><button class="btn closeModal">Отмена</button></div></div>
 <div id="loginModal" class="modal"><div class="modal-content"><h3>🔐 Вход лидера</h3><input type="text" id="loginUser" placeholder="Логин"><input type="password" id="loginPassword" placeholder="Пароль"><button id="doLogin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
-<div id="adminLoginModal" class="modal"><div class="modal-content"><h3>👑 Вход администратора</h3><input type="text" id="adminLoginUser" placeholder="Логин"><input type="password" id="adminLoginPass" placeholder="Пароль"><button id="doAdminLogin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
-<div id="addAdminModal" class="modal"><div class="modal-content"><h3>➕ Добавить администратора</h3><input type="text" id="newAdminLogin" placeholder="Логин"><input type="password" id="newAdminPasswordInput" placeholder="Пароль"><select id="newAdminRole"><option value="main_curator">Главный куратор госструктур</option><option value="deputy_curator">Заместитель куратора госструктур</option></select><button id="confirmAddAdmin" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
+<div id="adminLoginModal" class="modal"><div class="modal-content"><h3>👑 Вход администратора</h3><input type="text" id="adminUser" placeholder="Логин" value="admin"><input type="password" id="adminPass" placeholder="Пароль"><button id="doAdminLogin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
 <div id="addPriceModal" class="modal"><div class="modal-content"><h3>➕ Добавить пункт прайс-листа</h3><input type="text" id="newPriceName" placeholder="Название"><input type="number" id="newPriceValue" placeholder="Стоимость (баллы)"><button id="confirmAddPrice" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
 <div id="addGovModal" class="modal"><div class="modal-content"><h3>➕ Добавить госструктуру</h3><input type="text" id="newGovName" placeholder="Название структуры"><input type="text" id="newGovLeader" placeholder="Имя лидера"><button id="confirmAddGov" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     // ========== НАСТРОЙКИ SUPABASE ==========
-    // ⚠️ ВСТАВЬТЕ ВАШИ ДАННЫЕ ИЗ SUPABASE! ⚠️
-    const SUPABASE_URL = "https://dbbtrnniuhveaashyabm.supabase.co";  // Ваш Project URL
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiYnRybm5pdWh2ZWFhc2h5YWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODA1MzQsImV4cCI6MjA5NDY1NjUzNH0.HasFzL9YGZkasXq6eqpC8OQmzOs2RleZTE7JEFxTY9s";  // Ваш anon public key
+    const SUPABASE_URL = "https://dbbtrnniuhveaashyabm.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiYnRybm5pdWh2ZWFhc2h5YWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODA1MzQsImV4cCI6MjA5NDY1NjUzNH0.HasFzL9YGZkasXq6eqpC8OQmzOs2RleZTE7JEFxTY9s";
     
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
     let currentUser = null;
     let currentAdmin = null;
     let isSyncing = false;
-    
-    // Роли администраторов
-    const ADMIN_ROLES = {
-        superadmin: { name: "Супер-админ", level: 3, color: "role-superadmin" },
-        main_curator: { name: "Главный куратор госструктур", level: 2, color: "role-main-curator" },
-        deputy_curator: { name: "Заместитель куратора госструктур", level: 1, color: "role-deputy-curator" }
-    };
     
     // Данные
     let priceItems = [
@@ -378,7 +333,7 @@
         { id: "gov11", name: "ФСБ", leader: "—" }
     ];
 
-    let stats = {}, users = {}, admins = {}, lastChangeTimestamp = Date.now(), hourNorm = 40;
+    let stats = {}, users = {}, lastChangeTimestamp = Date.now(), hourNorm = 40;
     let hoursData = {}, reasonsData = {};
     let ratingChangeLogs = [], fullAuditLogs = [], userRegDate = {};
     let currentWeekStart = new Date();
@@ -387,8 +342,86 @@
     function getWeekDates(start) { let d=[]; for(let i=0;i<7;i++){ let n=new Date(start); n.setDate(start.getDate()+i); d.push(n.toISOString().slice(0,10)); } return d; }
     function formatDateRange(s){ let e=new Date(s); e.setDate(s.getDate()+6); return `${s.toLocaleDateString()} - ${e.toLocaleDateString()}`; }
 
+    async function hashPassword(p) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(p);
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
     function addRatingLog(user, faction, field, oldV, newV) { ratingChangeLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user, faction, field, oldVal:oldV, newVal:newV }); if(ratingChangeLogs.length>500) ratingChangeLogs.pop(); saveToSupabase(); }
     function addFullLog(action, faction, details) { let userName = currentAdmin?.login || currentUser?.login || "гость"; fullAuditLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user:userName, faction:faction||"система", action, details:details||"" }); if(fullAuditLogs.length>500) fullAuditLogs.pop(); saveToSupabase(); }
+
+    async function initDatabase() {
+        try {
+            const { data, error } = await supabase
+                .from('site_data')
+                .select('data')
+                .eq('id', 1)
+                .single();
+            
+            if (error && error.code === 'PGRST116') {
+                // Таблица пуста, создаём начальные данные
+                const initialData = {
+                    priceItems, factions, stats, hoursData, reasonsData, users: {}, 
+                    hourNorm, lastChangeTimestamp, ratingChangeLogs: [], fullAuditLogs: [], userRegDate: {}
+                };
+                await supabase.from('site_data').insert([{ id: 1, data: initialData }]);
+            } else if (data && data.data) {
+                const cloudData = data.data;
+                if (cloudData.priceItems) priceItems = cloudData.priceItems;
+                if (cloudData.factions) factions = cloudData.factions;
+                if (cloudData.stats) stats = cloudData.stats;
+                if (cloudData.hoursData) hoursData = cloudData.hoursData;
+                if (cloudData.reasonsData) reasonsData = cloudData.reasonsData;
+                if (cloudData.users) users = cloudData.users;
+                if (cloudData.hourNorm !== undefined) hourNorm = cloudData.hourNorm;
+                if (cloudData.lastChangeTimestamp) lastChangeTimestamp = cloudData.lastChangeTimestamp;
+                if (cloudData.ratingChangeLogs) ratingChangeLogs = cloudData.ratingChangeLogs;
+                if (cloudData.fullAuditLogs) fullAuditLogs = cloudData.fullAuditLogs;
+                if (cloudData.userRegDate) userRegDate = cloudData.userRegDate;
+            }
+        } catch(e) { console.error("Init error:", e); }
+        
+        for(let i=0;i<factions.length;i++) {
+            if(!stats[i]) stats[i] = {};
+            for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
+            if(!hoursData[i]) hoursData[i] = {};
+            if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
+        }
+        
+        // Восстановление сессии
+        const savedAdmin = localStorage.getItem("ural_admin");
+        if (savedAdmin) currentAdmin = JSON.parse(savedAdmin);
+        const savedUser = localStorage.getItem("ural_user");
+        if (savedUser) currentUser = JSON.parse(savedUser);
+        
+        updateUI();
+    }
+
+    async function saveToSupabase() {
+        if (isSyncing) return;
+        isSyncing = true;
+        const statusDiv = document.getElementById("syncStatus");
+        if (statusDiv) {
+            statusDiv.className = "sync-status syncing";
+            statusDiv.innerHTML = "🔄 Сохранение...";
+        }
+        
+        const allData = {
+            priceItems, factions, stats, hoursData, reasonsData, users, hourNorm, lastChangeTimestamp,
+            ratingChangeLogs, fullAuditLogs, userRegDate
+        };
+        
+        try {
+            await supabase.from('site_data').upsert({ id: 1, data: allData });
+            if (statusDiv) {
+                statusDiv.className = "sync-status synced";
+                statusDiv.innerHTML = "✅ Синхронизировано";
+            }
+        } catch(e) { console.error("Save error:", e); }
+        isSyncing = false;
+    }
 
     async function loadFromSupabase() {
         const statusDiv = document.getElementById("syncStatus");
@@ -404,9 +437,9 @@
                 .eq('id', 1)
                 .single();
             
-            if (error && error.code !== 'PGRST116') throw error;
+            if (error) throw error;
             
-            if (data && data.data && Object.keys(data.data).length > 0) {
+            if (data && data.data) {
                 const cloudData = data.data;
                 if (cloudData.priceItems) priceItems = cloudData.priceItems;
                 if (cloudData.factions) factions = cloudData.factions;
@@ -414,36 +447,346 @@
                 if (cloudData.hoursData) hoursData = cloudData.hoursData;
                 if (cloudData.reasonsData) reasonsData = cloudData.reasonsData;
                 if (cloudData.users) users = cloudData.users;
-                if (cloudData.admins) admins = cloudData.admins;
                 if (cloudData.hourNorm !== undefined) hourNorm = cloudData.hourNorm;
                 if (cloudData.lastChangeTimestamp) lastChangeTimestamp = cloudData.lastChangeTimestamp;
                 if (cloudData.ratingChangeLogs) ratingChangeLogs = cloudData.ratingChangeLogs;
                 if (cloudData.fullAuditLogs) fullAuditLogs = cloudData.fullAuditLogs;
                 if (cloudData.userRegDate) userRegDate = cloudData.userRegDate;
+                
+                for(let i=0;i<factions.length;i++) {
+                    if(!stats[i]) stats[i] = {};
+                    for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
+                    if(!hoursData[i]) hoursData[i] = {};
+                    if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
+                }
+                
+                updateUI();
             }
             
-            // Инициализация супер-админа по умолчанию
-            if (Object.keys(admins).length === 0) {
-                const adminHash = await hashPassword("admin123");
-                admins = { admin: { passwordHash: adminHash, role: "superadmin" } };
-                await saveToSupabase();
+            if (statusDiv) {
+                statusDiv.className = "sync-status synced";
+                statusDiv.innerHTML = "✅ Синхронизировано";
+            }
+        } catch(e) { 
+            console.error("Load error:", e);
+            if (statusDiv) {
+                statusDiv.className = "sync-status error";
+                statusDiv.innerHTML = "⚠️ Офлайн режим";
+            }
+        }
+    }
+
+    function calcTotal(s) { let total = 0; for(let p of priceItems) { let val = s[p.id] || 0; if(p.id === "repr") total -= val * p.value; else total += val * p.value; } return total; }
+    function calcPositive(s) { let total = 0; for(let p of priceItems) { if(p.id !== "repr") total += (s[p.id]||0) * p.value; } return total; }
+
+    function renderMain() {
+        let best=-Infinity, bestN="—", rep=0, pos=0;
+        for(let i=0;i<factions.length;i++){ let s=stats[i]||{}; let t=calcTotal(s); if(t>best){best=t;bestN=factions[i].name;} rep+=(s.repr||0); pos+=calcPositive(s); }
+        document.getElementById("bestScore").innerText=best===-Infinity?0:best;
+        document.getElementById("bestFaction").innerHTML=bestN;
+        document.getElementById("totalReprimands").innerText=rep;
+        document.getElementById("positivePoints").innerText=pos;
+        document.getElementById("lastChange").innerHTML=lastChangeTimestamp>0?new Date(lastChangeTimestamp).toLocaleString():"—";
+        const isAdmin = !!currentAdmin;
+        
+        const priceGrid=document.getElementById("priceGrid"); priceGrid.innerHTML="";
+        for(let idx=0; idx<priceItems.length; idx++){
+            let p=priceItems[idx];
+            let div=document.createElement("div"); div.className="price-item";
+            if(isAdmin){
+                div.innerHTML=`
+                    <div class="price-info">
+                        <input type="text" value="${escapeHtml(p.name)}" style="flex:1; background:#0f121d; border:1px solid var(--line); border-radius:8px; padding:6px;" id="priceName_${idx}">
+                        <input type="number" value="${p.value}" style="width:80px; background:#0f121d; border:1px solid var(--line); border-radius:8px; padding:6px;" id="priceVal_${idx}">
+                    </div>
+                    <div class="price-actions">
+                        <button class="icon-btn save" data-idx="${idx}">💾 Сохранить</button>
+                        <button class="icon-btn delete" data-idx="${idx}">🗑️ Удалить</button>
+                    </div>
+                `;
+                div.querySelector(".save").onclick=()=>{
+                    p.name=document.getElementById(`priceName_${idx}`).value;
+                    p.value=Math.max(0,parseInt(document.getElementById(`priceVal_${idx}`).value)||0);
+                    saveToSupabase(); renderMain(); renderHours();
+                };
+                div.querySelector(".delete").onclick=()=>{
+                    if(confirm(`Удалить "${p.name}"?`)){
+                        priceItems.splice(idx,1);
+                        for(let i=0;i<factions.length;i++) delete stats[i][p.id];
+                        saveToSupabase(); renderMain(); renderHours();
+                    }
+                };
+            } else {
+                div.innerHTML=`<div class="price-info"><span class="price-name">${escapeHtml(p.name)}</span><span class="price-value">${p.value} баллов</span></div>`;
+            }
+            priceGrid.appendChild(div);
+        }
+        
+        const govGrid=document.getElementById("govGrid"); govGrid.innerHTML="";
+        for(let idx=0; idx<factions.length; idx++){
+            let f=factions[idx];
+            let card=document.createElement("div"); card.className="gov-card";
+            if(isAdmin){
+                card.innerHTML=`
+                    <input type="text" value="${escapeHtml(f.name)}" class="gov-edit-input" id="govName_${idx}">
+                    <input type="text" value="${escapeHtml(f.leader)}" class="gov-edit-input" id="govLeader_${idx}">
+                    <div class="gov-actions">
+                        <button class="icon-btn save" data-idx="${idx}">💾 Сохранить</button>
+                        <button class="icon-btn delete" data-idx="${idx}">🗑️ Удалить</button>
+                    </div>
+                `;
+                card.querySelector(".save").onclick=()=>{
+                    f.name=document.getElementById(`govName_${idx}`).value;
+                    f.leader=document.getElementById(`govLeader_${idx}`).value;
+                    saveToSupabase(); renderMain(); renderHours();
+                };
+                card.querySelector(".delete").onclick=()=>{
+                    if(confirm(`Удалить "${f.name}"?`)){
+                        factions.splice(idx,1);
+                        let newStats={}, newHours={}, newReasons={};
+                        for(let i=0;i<factions.length;i++){ newStats[i]=stats[i]; newHours[i]=hoursData[i]; newReasons[i]=reasonsData[i]; }
+                        stats=newStats; hoursData=newHours; reasonsData=newReasons;
+                        saveToSupabase(); renderMain(); renderHours();
+                    }
+                };
+            } else {
+                card.innerHTML=`<div class="gov-name">${escapeHtml(f.name)}</div><div class="gov-leader">👤 ${escapeHtml(f.leader)}</div>`;
+            }
+            govGrid.appendChild(card);
+        }
+        
+        let theadRow=document.querySelector("#ratingTable thead tr");
+        theadRow.innerHTML='<th>Фракция / Лидер</th>';
+        for(let p of priceItems) theadRow.innerHTML+=`<th>${escapeHtml(p.name)}</th>`;
+        theadRow.innerHTML+='<th>ИТОГО</th>';
+        
+        let tbody=document.getElementById("ratingBody"); tbody.innerHTML="";
+        for(let i=0;i<factions.length;i++){
+            let canEdit = isAdmin || (currentUser?.type==="leader" && currentUser.factionIndex===i);
+            let s=stats[i]||{}; let total=calcTotal(s);
+            let row=tbody.insertRow();
+            row.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong><br><span style="font-size:0.7rem;">👑 ${escapeHtml(factions[i].leader)}</span>`;
+            for(let p of priceItems){
+                let td=row.insertCell();
+                let inp=document.createElement("input"); inp.type="number"; inp.value=s[p.id]||0;
+                if(!canEdit) inp.disabled=true;
+                inp.onchange=((idx,pid)=>(e)=>{ if(canEdit){ let old=stats[idx][pid]||0; let nv=Math.max(0,parseInt(e.target.value)||0); stats[idx][pid]=nv; lastChangeTimestamp=Date.now(); saveToSupabase(); renderMain(); }})(i,p.id);
+                td.appendChild(inp);
+            }
+            let tdTotal=row.insertCell(); tdTotal.className="total-cell"; tdTotal.innerText=total;
+        }
+        document.getElementById("addPriceBtn").style.display=isAdmin?"inline-block":"none";
+        document.getElementById("addGovBtn").style.display=isAdmin?"inline-block":"none";
+    }
+
+    function renderHours() {
+        const isAdmin = !!currentAdmin;
+        const isLeader = !!currentUser;
+        const myIdx = isLeader ? currentUser.factionIndex : -1;
+        const weekDates=getWeekDates(currentWeekStart);
+        const dayNames=["ПН","ВТ","СР","ЧТ","ПТ","СБ","ВС"];
+        for(let i=0;i<7;i++){ let el=document.getElementById(`day${i}`); if(el) el.innerHTML=`${dayNames[i]}<br><span style="font-size:0.65rem;">${weekDates[i].slice(5)}</span>`; }
+        document.getElementById("currentWeekRange").innerText=formatDateRange(currentWeekStart);
+        
+        const hb=document.getElementById("hoursBody");
+        const rb=document.getElementById("reasonsBody");
+        if(!hb || !rb) return;
+        hb.innerHTML=""; rb.innerHTML="";
+        
+        for(let i=0;i<factions.length;i++){
+            const canEdit = isAdmin || (isLeader && myIdx === i);
+            const uh=hoursData[i]||{};
+            let total=0;
+            let row=hb.insertRow();
+            row.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong><br><span style="font-size:0.7rem;">👑 ${escapeHtml(factions[i].leader)}</span>`;
+            for(let d=0;d<7;d++){
+                let td=row.insertCell();
+                let date=weekDates[d];
+                let val=uh[date]||0;
+                total+=val;
+                let inp=document.createElement("input"); inp.type="number"; inp.value=val; inp.step="0.5"; inp.style.width="60px";
+                if(!canEdit) inp.disabled=true;
+                inp.onchange=((idx,dt)=>(e)=>{ if(canEdit){ hoursData[idx][dt]=Math.max(0,parseFloat(e.target.value)||0); saveToSupabase(); renderHours(); }})(i,date);
+                td.appendChild(inp);
+            }
+            row.insertCell(1).innerHTML=`<span class="${total>=hourNorm?'hours-cell':'warning-cell'}">${total.toFixed(1)} ч.</span>`;
+            row.insertCell(2).innerHTML=`<span style="color:${total>=hourNorm?'var(--green)':'var(--orange)'}">${total>=hourNorm?"✅ Выполнена":"❌ Не выполнена"}</span>`;
+            
+            let reason=reasonsData[i]||{};
+            let rrow=rb.insertRow();
+            rrow.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong>`;
+            let rt=rrow.insertCell(1);
+            if(canEdit){
+                let ta=document.createElement("textarea"); ta.rows=2; ta.placeholder="Укажите причину..."; ta.value=reason.text||"";
+                ta.onchange=((idx)=>(e)=>{ reasonsData[idx].text=e.target.value; saveToSupabase(); renderHours(); })(i);
+                rt.appendChild(ta);
+            } else { rt.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.text)||"—"}</div>`; }
+            
+            let st=rrow.insertCell(2);
+            if(isAdmin){
+                let sel=document.createElement("select");
+                sel.innerHTML=`<option value="pending" ${reason.status==="pending"?"selected":""}>⏳ Ожидает</option><option value="approved" ${reason.status==="approved"?"selected":""}>✅ Одобрено</option><option value="rejected" ${reason.status==="rejected"?"selected":""}>❌ Отклонено</option>`;
+                sel.onchange=((idx)=>(e)=>{ reasonsData[idx].status=e.target.value; saveToSupabase(); renderHours(); })(i);
+                st.appendChild(sel);
+            } else {
+                let cls=reason.status==="pending"?"status-pending":(reason.status==="approved"?"status-approved":"status-rejected");
+                let txt=reason.status==="pending"?"⏳ Ожидает":(reason.status==="approved"?"✅ Одобрено":"❌ Отклонено");
+                st.innerHTML=`<span class="status-badge ${cls}">${txt}</span>`;
             }
             
-            // Восстановление сессии из localStorage
-            const savedAdmin = localStorage.getItem("ural_admin_session");
-            if (savedAdmin) {
-                const sess = JSON.parse(savedAdmin);
-                if (admins[sess.login]) currentAdmin = { login: sess.login, role: admins[sess.login].role };
-            }
-            
-            const savedUser = localStorage.getItem("ural_user_session");
-            if (savedUser) {
-                const sess = JSON.parse(savedUser);
-                if (users[sess.login]) currentUser = { type: "leader", login: sess.login, factionIndex: users[sess.login].factionIndex };
-            }
-            
-            for(let i=0;i<factions.length;i++) {
-                if(!stats[i]) stats[i] = {};
-                for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
-                if(!hoursData[i]) hoursData[i] = {};
-                if(!reasonsData[i]) reasonsData[i] =
+            let ct=rrow.insertCell(3);
+            if(isAdmin){
+                let inp=document.createElement("input"); inp.type="text"; inp.placeholder="Комментарий..."; inp.value=reason.adminComment||""; inp.style.width="100%";
+                inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveToSupabase(); renderHours(); })(i);
+                ct.appendChild(inp);
+            } else { ct.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.adminComment)||"—"}</div>`; }
+        }
+        
+        let normInp=document.getElementById("hourNorm");
+        if(normInp){
+            normInp.value=hourNorm; normInp.disabled=!isAdmin;
+        }
+        let editNormBtn=document.getElementById("editNormBtn");
+        if(editNormBtn) editNormBtn.style.display=isAdmin?"inline-block":"none";
+        if(normInp){
+            normInp.onchange=(e)=>{ if(isAdmin){ hourNorm=Math.max(0,parseFloat(e.target.value)||0); saveToSupabase(); renderHours(); } };
+        }
+    }
+
+    function updateUI() {
+        const isAdmin = !!currentAdmin;
+        const isLeader = !!currentUser;
+        
+        const authButtons = document.getElementById("authButtons");
+        const userInfoArea = document.getElementById("userInfoArea");
+        const logoutBtn = document.getElementById("logoutBtn");
+        
+        if(authButtons) authButtons.style.display=(isAdmin || isLeader)?"none":"flex";
+        if(userInfoArea) userInfoArea.style.display=(isAdmin || isLeader)?"flex":"none";
+        if(logoutBtn) logoutBtn.style.display=(isAdmin || isLeader)?"block":"none";
+        
+        if(currentAdmin){
+            if(userInfoArea) userInfoArea.innerHTML=`👑 Администратор: ${currentAdmin.login}`;
+        } else if(currentUser){
+            if(userInfoArea) userInfoArea.innerHTML=`👤 Лидер: ${factions[currentUser.factionIndex]?.name} (${currentUser.login})`;
+        }
+        renderMain(); renderHours();
+    }
+
+    function escapeHtml(s){ return String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    async function register(login,email,pass,factionIdx){
+        if(!login||!email||!pass) return "Заполните всё";
+        if(users[login]) return "Логин занят";
+        if(factionIdx===undefined||factionIdx<0||factionIdx>=factions.length) return "Выберите фракцию";
+        let hash=await hashPassword(pass);
+        users[login]={passwordHash:hash,email,factionIndex:factionIdx,login};
+        userRegDate[login]=new Date().toLocaleString();
+        saveToSupabase();
+        return null;
+    }
+    async function login(login,pass){
+        let u=users[login];
+        if(!u) return "Неверный логин";
+        let hash=await hashPassword(pass);
+        if(u.passwordHash!==hash) return "Неверный пароль";
+        currentUser={type:"leader",login:login,factionIndex:u.factionIndex};
+        localStorage.setItem("ural_user", JSON.stringify(currentUser));
+        currentAdmin = null;
+        localStorage.removeItem("ural_admin");
+        updateUI();
+        return null;
+    }
+    async function adminLogin(login,pass){
+        if(login==="admin" && pass==="admin123"){
+            currentAdmin={login:"admin"};
+            localStorage.setItem("ural_admin", JSON.stringify(currentAdmin));
+            currentUser=null;
+            localStorage.removeItem("ural_user");
+            updateUI();
+            return null;
+        }
+        return "Неверные данные (admin / admin123)";
+    }
+    function logout(){
+        currentAdmin=null; currentUser=null;
+        localStorage.removeItem("ural_admin");
+        localStorage.removeItem("ural_user");
+        updateUI();
+    }
+
+    function initModals(){
+        document.getElementById("showRegisterBtn").onclick=()=>{
+            let s=document.getElementById("regFaction");
+            s.innerHTML='<option value="">Выберите фракцию</option>'+factions.map((f,i)=>`<option value="${i}">${f.name}</option>`).join('');
+            document.getElementById("registerModal").classList.add("active");
+        };
+        document.getElementById("showLoginBtn").onclick=()=>document.getElementById("loginModal").classList.add("active");
+        document.getElementById("adminLoginBtn").onclick=()=>document.getElementById("adminLoginModal").classList.add("active");
+        document.getElementById("doRegister").onclick=async()=>{
+            let err=await register(document.getElementById("regLogin").value.trim(),document.getElementById("regEmail").value.trim(),document.getElementById("regPass").value,parseInt(document.getElementById("regFaction").value));
+            if(err) alert(err); else { alert("Регистрация успешна!"); document.getElementById("registerModal").classList.remove("active"); }
+        };
+        document.getElementById("doLogin").onclick=async()=>{
+            let err=await login(document.getElementById("loginUser").value.trim(),document.getElementById("loginPassword").value);
+            if(err) alert(err); else document.getElementById("loginModal").classList.remove("active");
+        };
+        document.getElementById("doAdminLogin").onclick=async()=>{
+            let err=await adminLogin(document.getElementById("adminUser").value.trim(),document.getElementById("adminPass").value);
+            if(err) alert(err); else document.getElementById("adminLoginModal").classList.remove("active");
+        };
+        document.getElementById("logoutBtn").onclick=()=>logout();
+        document.querySelectorAll(".closeModal").forEach(b=>b.onclick=()=>b.closest(".modal")?.classList.remove("active"));
+        window.onclick=(e)=>{ if(e.target.classList&&e.target.classList.contains("modal")) e.target.classList.remove("active"); };
+        document.querySelectorAll(".tab-btn").forEach(btn=>{
+            btn.onclick=()=>{
+                document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+                btn.classList.add("active");
+                document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+                document.getElementById(btn.dataset.page+"Page").classList.add("active");
+            };
+        });
+        document.getElementById("prevWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()-7); renderHours(); };
+        document.getElementById("nextWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()+7); renderHours(); };
+        document.getElementById("editNormBtn").onclick=()=>alert("Измените норму в поле выше");
+        document.getElementById("addPriceBtn").onclick=()=>{ document.getElementById("addPriceModal").classList.add("active"); };
+        document.getElementById("confirmAddPrice").onclick=()=>{
+            let name=document.getElementById("newPriceName").value.trim();
+            let val=parseInt(document.getElementById("newPriceValue").value)||0;
+            if(!name){ alert("Введите название"); return; }
+            let newId="custom_"+Date.now();
+            priceItems.push({ id:newId, name:name, value:Math.max(0,val) });
+            for(let i=0;i<factions.length;i++) if(!stats[i][newId]) stats[i][newId]=0;
+            saveToSupabase();
+            document.getElementById("addPriceModal").classList.remove("active");
+            document.getElementById("newPriceName").value="";
+            document.getElementById("newPriceValue").value="";
+            renderMain(); renderHours();
+        };
+        document.getElementById("addGovBtn").onclick=()=>{ document.getElementById("addGovModal").classList.add("active"); };
+        document.getElementById("confirmAddGov").onclick=()=>{
+            let name=document.getElementById("newGovName").value.trim();
+            let leader=document.getElementById("newGovLeader").value.trim() || "—";
+            if(!name){ alert("Введите название"); return; }
+            factions.push({ id:"gov_"+Date.now(), name:name, leader:leader });
+            let newIdx=factions.length-1;
+            stats[newIdx]={};
+            for(let p of priceItems) stats[newIdx][p.id]=0;
+            hoursData[newIdx]={};
+            reasonsData[newIdx]={ text:"", status:"pending", adminComment:"" };
+            saveToSupabase();
+            document.getElementById("addGovModal").classList.remove("active");
+            document.getElementById("newGovName").value="";
+            document.getElementById("newGovLeader").value="";
+            renderMain(); renderHours();
+        };
+    }
+
+    initDatabase();
+    initModals();
+    
+    setInterval(() => { loadFromSupabase(); }, 10000);
+    setTimeout(() => { loadFromSupabase(); }, 1000);
+</script>
+</body>
+</html>
