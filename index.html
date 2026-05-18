@@ -1,832 +1,223 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Уральск Онлайн | Лидеры фракций</title>
-    <style>
-        :root {
-            color-scheme: dark;
-            --surface: rgba(17, 21, 32, .86);
-            --surface-strong: rgba(21, 27, 40, .94);
-            --line: rgba(226, 232, 240, .09);
-            --text: #f5f7fb;
-            --muted: #8c98aa;
-            --accent: #d7a85d;
-            --green: #40c785;
-            --orange: #f59e42;
-            --red: #ff6b6b;
-            --blue: #6aa7ff;
-            --purple: #a855f7;
-            --radius-xl: 28px;
-            --radius-lg: 20px;
-            --radius-md: 14px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Уральск Онлайн | Лидеры фракций</title>
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
+:root{
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --text:#1c2430;
+    --muted:#6b7685;
+    --accent:#d7a85d;
+    --green:#2ecc71;
+    --red:#ff5b5b;
+    --radius:18px;
+}
 
-        body {
-            min-height: 100vh;
-            padding: 28px;
-            background: radial-gradient(circle at 18% -8%, rgba(215,168,93,.18), transparent 34%),
-                        radial-gradient(circle at 84% 10%, rgba(106,167,255,.13), transparent 28%),
-                        linear-gradient(180deg, #090b11 0%, #07090e 100%);
-            font-family: Inter, system-ui, sans-serif;
-            color: var(--text);
-        }
+*{box-sizing:border-box;margin:0;padding:0}
 
-        .container { width: min(1480px, 100%); margin: 0 auto; }
+body{
+    font-family:Arial;
+    background:var(--bg);
+    color:var(--text);
+    padding:20px;
+}
 
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-            padding: 12px 16px;
-            background: rgba(8, 10, 15, .74);
-            backdrop-filter: blur(22px);
-            border: 1px solid var(--line);
-            border-radius: 24px;
-        }
+.container{max-width:1300px;margin:auto}
 
-        .logo-area h1 {
-            font-size: 1.55rem;
-            background: linear-gradient(140deg, #f2e0bc, #e0ba6f);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-        .logo-area p { font-size: 0.7rem; color: var(--muted); }
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+    padding:15px;
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:0 6px 20px rgba(0,0,0,0.06);
+}
 
-        .nav-tabs {
-            display: flex;
-            gap: 8px;
-            background: rgba(0,0,0,0.3);
-            padding: 4px;
-            border-radius: 60px;
-        }
-        .tab-btn {
-            padding: 8px 20px;
-            border-radius: 40px;
-            background: transparent;
-            border: none;
-            color: var(--muted);
-            cursor: pointer;
-        }
-        .tab-btn.active { background: var(--accent); color: #0c0f18; }
+h1{font-size:20px}
 
-        .btn-group { display: flex; flex-wrap: wrap; gap: 12px; }
-        .btn {
-            padding: 8px 18px;
-            border-radius: 80px;
-            font-size: 0.85rem;
-            background: rgba(255,255,255,.04);
-            border: 1px solid var(--line);
-            color: var(--text);
-            cursor: pointer;
-        }
-        .btn-primary { background: var(--accent); border-color: var(--accent); color: #0c0f18; font-weight: 600; }
-        .btn-danger { background: rgba(220,70,70,0.2); border-color: rgba(255,100,100,0.3); }
-        .btn-success { background: rgba(64,199,133,0.2); border-color: var(--green); color: var(--green); }
-        .btn-purple { background: rgba(168,85,247,0.2); border-color: var(--purple); color: var(--purple); }
-        .user-chip { background: rgba(0,0,0,0.45); border-radius: 60px; padding: 5px 16px; border-left: 2px solid var(--accent); }
-        .icon-btn { background: rgba(255,255,255,0.08); border: none; cursor: pointer; font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; color: var(--text); }
-        .icon-btn:hover { background: rgba(255,255,255,0.2); }
-        .icon-btn.delete { color: var(--red); }
-        .icon-btn.save { color: var(--green); }
-        .role-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; margin-left: 8px; }
-        .role-superadmin { background: rgba(215,168,93,0.3); color: var(--accent); }
-        .role-main-curator { background: rgba(168,85,247,0.3); color: var(--purple); }
-        .role-deputy-curator { background: rgba(106,167,255,0.3); color: var(--blue); }
+.nav button{
+    padding:8px 14px;
+    border:none;
+    border-radius:12px;
+    background:#eee;
+    cursor:pointer;
+    margin-left:5px;
+}
+.nav button.active{background:var(--accent);color:#fff}
 
-        .page { display: none; }
-        .page.active { display: block; }
+.card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:15px;
+    margin-bottom:15px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.06);
+}
 
-        .stats-panel {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-        .stat-card {
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--line);
-            border-radius: var(--radius-lg);
-            padding: 1.2rem;
-        }
-        .stat-card .stat-label { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-        .stat-card .stat-value { font-size: 2rem; font-weight: 700; color: var(--accent); }
-        .stat-card .stat-sub { font-size: 0.7rem; color: var(--muted); margin-top: 6px; }
+table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+}
 
-        .card {
-            background: var(--surface);
-            backdrop-filter: blur(6px);
-            border: 1px solid var(--line);
-            border-radius: var(--radius-xl);
-            padding: 1.6rem;
-            margin-bottom: 2rem;
-        }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 1.5rem;
-        }
-        .card-header h2 { font-size: 1.55rem; font-weight: 500; }
+th,td{
+    padding:10px;
+    border-bottom:1px solid #eee;
+    text-align:left;
+}
 
-        .price-grid, .gov-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 10px;
-        }
-        .price-item, .gov-card {
-            background: var(--surface-strong);
-            border-radius: var(--radius-md);
-            padding: 12px;
-            border: 1px solid var(--line);
-        }
-        .price-info { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .price-name { font-weight: 600; flex: 1; }
-        .price-value { font-weight: 700; color: var(--green); }
-        .price-actions, .gov-actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
-        .gov-card { display: flex; flex-direction: column; gap: 8px; }
-        .gov-name { font-weight: 600; font-size: 1rem; }
-        .gov-leader { font-size: 0.8rem; color: var(--muted); }
-        .gov-edit-input { background: #0f121d; border: 1px solid var(--line); border-radius: 8px; padding: 6px; color: var(--text); width: 100%; }
+th{
+    background:#fafafa;
+}
 
-        .table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { 
-            text-align: left; 
-            padding: 14px 8px; 
-            background: rgba(0,0,0,0.35); 
-            color: var(--accent); 
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        td { padding: 12px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-        input {
-            background: #0f121d;
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 6px 8px;
-            color: var(--text);
-            width: 70px;
-            text-align: center;
-        }
-        input:disabled { opacity: 0.55; }
-        textarea {
-            background: #0f121d;
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 8px;
-            color: var(--text);
-            width: 100%;
-            font-family: inherit;
-            resize: vertical;
-            font-size: 0.8rem;
-        }
-        select { background: #0f121d; border: 1px solid var(--line); border-radius: 12px; padding: 6px; color: var(--text); }
-        .total-cell { font-weight: bold; color: var(--accent); background: rgba(215,168,93,.12); border-radius: 16px; text-align: center; }
-        .hours-cell { color: var(--green); font-weight: bold; }
-        .warning-cell { color: var(--orange); }
-        .date-nav { display: flex; align-items: center; gap: 15px; justify-content: center; margin-bottom: 20px; }
-        .date-nav button { padding: 6px 15px; background: rgba(215,168,93,0.2); border: 1px solid var(--accent); border-radius: 30px; cursor: pointer; color: var(--text); }
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 500; display: inline-block; }
-        .status-pending { background: rgba(245,158,66,0.2); color: var(--orange); }
-        .status-approved { background: rgba(64,199,133,0.2); color: var(--green); }
-        .status-rejected { background: rgba(255,107,107,0.2); color: var(--red); }
+.page{display:none}
+.page.active{display:block}
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(12px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: var(--surface-strong);
-            border: 1px solid var(--line);
-            border-radius: 32px;
-            padding: 28px;
-            max-width: 500px;
-            width: 90%;
-        }
-        .modal-content input, .modal-content select {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            background: #0e1120;
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            color: var(--text);
-        }
-        .footer-note { text-align: center; font-size: 0.7rem; margin-top: 24px; opacity: 0.6; }
+.badge{
+    padding:4px 8px;
+    border-radius:10px;
+    font-size:12px;
+}
+.green{background:#e8f9ef;color:var(--green)}
+.red{background:#ffecec;color:var(--red)}
 
-        @media (max-width: 700px) { body { padding: 16px; } .card { padding: 1.2rem; } }
-    </style>
+</style>
 </head>
+
 <body>
+
 <div class="container">
-    <div class="topbar">
-        <div class="logo-area"><h1>⚡ Уральск Онлайн</h1><p>GTA 5 RP · Лидеры фракций</p></div>
-        <div class="nav-tabs">
-            <button class="tab-btn active" data-page="main">📊 Рейтинг</button>
-            <button class="tab-btn" data-page="hours">⏱️ Часы лидеров</button>
-            <button class="tab-btn" data-page="admin" id="adminTabBtn" style="display:none;">🔐 Админ-панель</button>
-        </div>
-        <div class="btn-group" id="authButtons">
-            <button class="btn btn-primary" id="showRegisterBtn">📝 Регистрация</button>
-            <button class="btn" id="showLoginBtn">🔑 Вход</button>
-            <button class="btn" id="showAdminLoginBtn">👑 Админ вход</button>
-        </div>
-        <div id="userInfoArea" style="display: none;" class="user-chip"></div>
-        <button id="logoutBtn" class="btn btn-danger" style="display:none;">Выйти</button>
-        <div id="syncStatus" class="sync-status synced">💾 Локальное сохранение</div>
+
+<!-- HEADER + АДМИН -->
+<div class="header">
+    <h1>⚡ Уральск Онлайн</h1>
+
+    <div class="nav">
+        <button class="tab active" data-page="main">Рейтинг</button>
+        <button class="tab" data-page="hours">Часы</button>
     </div>
 
-    <!-- СТРАНИЦА 1: РЕЙТИНГ -->
-    <div id="mainPage" class="page active">
-        <div class="stats-panel">
-            <div class="stat-card"><div class="stat-label">🏆 Лучший результат</div><div class="stat-value" id="bestScore">0</div><div class="stat-sub" id="bestFaction">—</div></div>
-            <div class="stat-card"><div class="stat-label">⚠️ Штрафы (выговоры)</div><div class="stat-value" id="totalReprimands">0</div></div>
-            <div class="stat-card"><div class="stat-label">📈 Положительные баллы</div><div class="stat-value" id="positivePoints">0</div></div>
-            <div class="stat-card"><div class="stat-label">🕐 Последнее изменение</div><div class="stat-value" id="lastChange" style="font-size:1.2rem;">—</div></div>
-        </div>
-
-        <div class="card">
-            <div class="card-header"><h2>💰 Прайс-лист</h2><button id="addPriceBtn" class="btn btn-success" style="display:none;">➕ Добавить пункт</button></div>
-            <div class="price-grid" id="priceGrid"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-header"><h2>🏛️ Государственные структуры</h2><button id="addGovBtn" class="btn btn-success" style="display:none;">➕ Добавить структуру</button></div>
-            <div class="gov-grid" id="govGrid"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-header"><h2>📊 Рейтинг эффективности</h2></div>
-            <div class="table-wrapper"><table id="ratingTable"><thead><tr><th>Фракция / Лидер</th><th id="ratingHeaders"></th><th>ИТОГО</th></tr></thead><tbody id="ratingBody"></tbody></table></div>
-        </div>
+    <div>
+        <button onclick="openAdmin()">👑 Админ вход</button>
     </div>
-
-    <!-- СТРАНИЦА 2: ЧАСЫ ЛИДЕРОВ -->
-    <div id="hoursPage" class="page">
-        <div class="card">
-            <div class="card-header"><h2>⏱️ Часы лидеров (еженедельно)</h2><div><span>Норма:</span><input type="number" id="hourNorm" value="40" style="width:70px;" disabled><button id="editNormBtn" class="btn" style="display:none;">✏️</button></div></div>
-            <div class="date-nav"><button id="prevWeekBtn">◀ Пред. неделя</button><span id="currentWeekRange" style="font-weight:bold;"></span><button id="nextWeekBtn">След. неделя ▶</button></div>
-            <div class="table-wrapper"><table id="hoursTable"><thead><tr><th>Фракция / Лидер</th><th id="day0"></th><th id="day1"></th><th id="day2"></th><th id="day3"></th><th id="day4"></th><th id="day5"></th><th id="day6"></th><th>Итого</th><th>Статус</th></tr></thead><tbody id="hoursBody"></tbody></table></div>
-        </div>
-
-        <div class="card">
-            <div class="card-header"><h2>📝 Причины невыполнения нормы</h2></div>
-            <div class="table-wrapper"><table id="reasonsTable"><thead><tr><th>Фракция</th><th>Причина (от лидера)</th><th>Статус</th><th>Комментарий админа</th></table></thead><tbody id="reasonsBody"></tbody></table></div>
-        </div>
-    </div>
-
-    <!-- СТРАНИЦА 3: АДМИН-ПАНЕЛЬ -->
-    <div id="adminPage" class="page">
-        <div class="card">
-            <div class="card-header"><h2>👑 Управление администраторами</h2><button id="addAdminBtn" class="btn btn-purple">➕ Добавить администратора</button></div>
-            <div class="table-wrapper"><table id="adminsTable"><thead><td><th>Логин</th><th>Роль</th><th>Действия</th></tr></thead><tbody id="adminsBody"></tbody></table></div>
-        </div>
-        <div class="card">
-            <div class="card-header"><h2>🔐 Сменить пароль</h2></div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <input type="password" id="newAdminPassword" placeholder="Новый пароль" style="width: 200px;">
-                <button id="changePasswordBtn" class="btn btn-primary">Сменить пароль</button>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header"><h2>📊 История изменений рейтинга</h2><button id="clearRatingLogsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Очистить</button></div>
-            <div class="table-wrapper"><table id="ratingLogsTable"><thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Поле</th><th>Было</th><th>Стало</th></tr></thead><tbody id="ratingLogsBody"></tbody></table></div>
-        </div>
-        <div class="card">
-            <div class="card-header"><h2>👥 Аккаунты лидеров</h2><button id="clearAccountsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Удалить всех</button></div>
-            <div class="table-wrapper"><table id="accountsTable"><thead><tr><th>Логин</th><th>Почта</th><th>Фракция</th><th>Дата регистрации</th><th>Действия</th></tr></thead><tbody id="accountsBody"></tbody></table></div>
-        </div>
-        <div class="card">
-            <div class="card-header"><h2>📋 Полный аудит действий</h2><button id="clearFullLogsBtn" class="btn" style="background:rgba(220,70,70,0.3);">🗑️ Очистить логи</button></div>
-            <div class="table-wrapper"><table id="fullLogsTable"><thead><tr><th>Время</th><th>Пользователь</th><th>Фракция</th><th>Действие</th><th>Детали</th></tr></thead><tbody id="fullLogsBody"></tbody></table></div>
-        </div>
-    </div>
-
-    <div id="adminFooter" class="footer-note" style="display:none;">🔐 Админ-панель</div>
 </div>
 
-<!-- МОДАЛЬНЫЕ ОКНА -->
-<div id="registerModal" class="modal"><div class="modal-content"><h3>📝 Регистрация лидера</h3><select id="regFaction"></select><input type="text" id="regLogin" placeholder="Логин"><input type="email" id="regEmail" placeholder="Почта"><input type="password" id="regPass" placeholder="Пароль"><button id="doRegister" class="btn btn-primary">Зарегистрироваться</button><button class="btn closeModal">Отмена</button></div></div>
-<div id="loginModal" class="modal"><div class="modal-content"><h3>🔐 Вход лидера</h3><input type="text" id="loginUser" placeholder="Логин"><input type="password" id="loginPassword" placeholder="Пароль"><button id="doLogin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
-<div id="adminLoginModal" class="modal"><div class="modal-content"><h3>👑 Вход администратора</h3><input type="text" id="adminLoginUser" placeholder="Логин"><input type="password" id="adminLoginPass" placeholder="Пароль"><button id="doAdminLogin" class="btn btn-primary">Войти</button><button class="btn closeModal">Отмена</button></div></div>
-<div id="addAdminModal" class="modal"><div class="modal-content"><h3>➕ Добавить администратора</h3><input type="text" id="newAdminLogin" placeholder="Логин"><input type="password" id="newAdminPasswordInput" placeholder="Пароль"><select id="newAdminRole"><option value="main_curator">Главный куратор госструктур</option><option value="deputy_curator">Заместитель куратора госструктур</option></select><button id="confirmAddAdmin" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
-<div id="addPriceModal" class="modal"><div class="modal-content"><h3>➕ Добавить пункт прайс-листа</h3><input type="text" id="newPriceName" placeholder="Название"><input type="number" id="newPriceValue" placeholder="Стоимость (баллы)"><button id="confirmAddPrice" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
-<div id="addGovModal" class="modal"><div class="modal-content"><h3>➕ Добавить госструктуру</h3><input type="text" id="newGovName" placeholder="Название структуры"><input type="text" id="newGovLeader" placeholder="Имя лидера"><button id="confirmAddGov" class="btn btn-primary">Добавить</button><button class="btn closeModal">Отмена</button></div></div>
+<!-- ================= РЕЙТИНГ ================= -->
+<div id="main" class="page active">
 
+    <!-- РЕЙТИНГ -->
+    <div class="card">
+        <h3>📊 Рейтинг фракций</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Фракция</th>
+                    <th>Баллы</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Правительство</td>
+                    <td>1200</td>
+                    <td><span class="badge green">Лидер</span></td>
+                </tr>
+                <tr>
+                    <td>МВД</td>
+                    <td>980</td>
+                    <td><span class="badge">—</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ПРАЙС -->
+    <div class="card">
+        <h3>💰 Прайс-лист</h3>
+        <table>
+            <thead>
+                <tr><th>Действие</th><th>Баллы</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>ГМП</td><td>250 (одно)</td></tr>
+                <tr><td>МП</td><td>150 (одно)</td></tr>
+                <tr><td>Участие в поставках</td><td>250 (одно)</td></tr>
+                <tr><td>Пресс новости</td><td>190 (одно)</td></tr>
+                <tr><td>Принятые заявки</td><td>150 (одно)</td></tr>
+                <tr><td>Выговоры</td><td>90</td></tr>
+                <tr><td>Выезды адвокатов</td><td>250 (одно)</td></tr>
+                <tr><td>Написанные акты</td><td>250 (одно)</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- ================= ЧАСЫ ================= -->
+<div id="hours" class="page">
+
+    <div class="card">
+        <h3>⏱️ Часы лидеров</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Фракция</th>
+                    <th>Пн</th>
+                    <th>Вт</th>
+                    <th>Ср</th>
+                    <th>Чт</th>
+                    <th>Пт</th>
+                    <th>Сб</th>
+                    <th>Вс</th>
+                    <th>Итого</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Правительство</td>
+                    <td>5</td><td>6</td><td>7</td><td>5</td><td>6</td><td>4</td><td>3</td>
+                    <td>36</td>
+                </tr>
+                <tr>
+                    <td>МВД</td>
+                    <td>4</td><td>5</td><td>6</td><td>5</td><td>5</td><td>4</td><td>3</td>
+                    <td>32</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</div>
+
+<!-- ================= JS ================= -->
 <script>
-    async function hashPassword(p) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(p);
-        const hash = await crypto.subtle.digest('SHA-256', data);
-        return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+document.querySelectorAll(".tab").forEach(btn=>{
+    btn.onclick=()=>{
+        document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+        document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.page).classList.add("active");
     }
+});
 
-    // Роли администраторов
-    const ADMIN_ROLES = {
-        superadmin: { name: "Супер-админ", level: 3, color: "role-superadmin" },
-        main_curator: { name: "Главный куратор госструктур", level: 2, color: "role-main-curator" },
-        deputy_curator: { name: "Заместитель куратора госструктур", level: 1, color: "role-deputy-curator" }
-    };
-
-    // Данные
-    let admins = {}; // { login: { passwordHash, role } }
-    let currentAdmin = null;
-    
-    // Динамические данные
-    let priceItems = [
-        { id: "gmp", name: "ГМП", value: 250 },
-        { id: "mp", name: "МП", value: 150 },
-        { id: "supply", name: "Участие в поставках", value: 250 },
-        { id: "press", name: "Пресс-новости", value: 190 },
-        { id: "apps", name: "Принятые заявки", value: 150 },
-        { id: "repr", name: "Выговоры", value: 90 },
-        { id: "lawyer", name: "Выезды адвокатов", value: 250 },
-        { id: "acts", name: "Написанные акты", value: 250 }
-    ];
-
-    let factions = [
-        { id: "gov1", name: "Правительство", leader: "Северный Валентин Владимирович" },
-        { id: "gov2", name: "Адвокатура", leader: "Нету" },
-        { id: "gov3", name: "Генеральная прокуратура", leader: "Сергеев Василий Александрович" },
-        { id: "gov4", name: "Прокуратура субъекта", leader: "Нету" },
-        { id: "gov5", name: "Следственный комитет", leader: "—" },
-        { id: "gov6", name: "Уральск ЛАЙВ", leader: "Асия Петроградская" },
-        { id: "gov7", name: "ГИБДД", leader: "—" },
-        { id: "gov8", name: "ГКБ", leader: "—" },
-        { id: "gov9", name: "ВС РФ", leader: "—" },
-        { id: "gov10", name: "МВД", leader: "—" },
-        { id: "gov11", name: "ФСБ", leader: "—" }
-    ];
-
-    let stats = {}, users = {}, currentUser = null, lastChangeTimestamp = Date.now(), hourNorm = 40;
-    let hoursData = {}, reasonsData = {};
-    let ratingChangeLogs = [], fullAuditLogs = [], userRegDate = {};
-    let currentWeekStart = new Date();
-    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + (currentWeekStart.getDay() === 0 ? -6 : 1));
-
-    function getWeekDates(start) { let d=[]; for(let i=0;i<7;i++){ let n=new Date(start); n.setDate(start.getDate()+i); d.push(n.toISOString().slice(0,10)); } return d; }
-    function formatDateRange(s){ let e=new Date(s); e.setDate(s.getDate()+6); return `${s.toLocaleDateString()} - ${e.toLocaleDateString()}`; }
-
-    function addRatingLog(user, faction, field, oldV, newV) { ratingChangeLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user, faction, field, oldVal:oldV, newVal:newV }); if(ratingChangeLogs.length>500) ratingChangeLogs.pop(); saveAllToLocal(); }
-    function addFullLog(action, faction, details) { let userName = currentAdmin?.login || currentUser?.login || "гость"; fullAuditLogs.unshift({ time:new Date().toLocaleString('ru-RU'), user:userName, faction:faction||"система", action, details:details||"" }); if(fullAuditLogs.length>500) fullAuditLogs.pop(); saveAllToLocal(); }
-
-    function saveAllToLocal() {
-        const allData = {
-            priceItems, factions, stats, hoursData, reasonsData, users, hourNorm, lastChangeTimestamp,
-            ratingChangeLogs, fullAuditLogs, userRegDate, admins,
-            currentAdmin: currentAdmin ? { login: currentAdmin.login, role: currentAdmin.role } : null,
-            currentUser: currentUser ? { type: currentUser.type, login: currentUser.login, factionIndex: currentUser.factionIndex } : null
-        };
-        localStorage.setItem("ural_all_data", JSON.stringify(allData));
+function openAdmin(){
+    let pass = prompt("Введите пароль админа:");
+    if(pass==="admin123"){
+        alert("Доступ разрешён (можно добавить админ панель дальше)");
+    }else{
+        alert("Неверный пароль");
     }
-
-    function loadAllFromLocal() {
-        const saved = localStorage.getItem("ural_all_data");
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                if (data.priceItems) priceItems = data.priceItems;
-                if (data.factions) factions = data.factions;
-                if (data.stats) stats = data.stats;
-                if (data.hoursData) hoursData = data.hoursData;
-                if (data.reasonsData) reasonsData = data.reasonsData;
-                if (data.users) users = data.users;
-                if (data.hourNorm !== undefined) hourNorm = data.hourNorm;
-                if (data.lastChangeTimestamp) lastChangeTimestamp = data.lastChangeTimestamp;
-                if (data.ratingChangeLogs) ratingChangeLogs = data.ratingChangeLogs;
-                if (data.fullAuditLogs) fullAuditLogs = data.fullAuditLogs;
-                if (data.userRegDate) userRegDate = data.userRegDate;
-                if (data.admins) admins = data.admins;
-                if (data.currentAdmin) currentAdmin = data.currentAdmin;
-                if (data.currentUser) {
-                    if (data.currentUser.type === "leader" && users[data.currentUser.login]) {
-                        currentUser = { type: "leader", login: data.currentUser.login, factionIndex: data.currentUser.factionIndex };
-                    }
-                }
-            } catch(e) {}
-        }
-        // Инициализация супер-админа по умолчанию
-        if (Object.keys(admins).length === 0) {
-            admins = { admin: { passwordHash: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918", role: "superadmin" } }; // admin123
-        }
-        for(let i=0;i<factions.length;i++) {
-            if(!stats[i]) stats[i] = {};
-            for(let p of priceItems) if(stats[i][p.id] === undefined) stats[i][p.id] = 0;
-            if(!hoursData[i]) hoursData[i] = {};
-            if(!reasonsData[i]) reasonsData[i] = { text: "", status: "pending", adminComment: "" };
-        }
-    }
-
-    function calcTotal(s) { let total = 0; for(let p of priceItems) { let val = s[p.id] || 0; if(p.id === "repr") total -= val * p.value; else total += val * p.value; } return total; }
-    function calcPositive(s) { let total = 0; for(let p of priceItems) { if(p.id !== "repr") total += (s[p.id]||0) * p.value; } return total; }
-
-    function canEditPrice() { return currentAdmin && (currentAdmin.role === "superadmin" || currentAdmin.role === "main_curator" || currentAdmin.role === "deputy_curator"); }
-    function canEditGov() { return currentAdmin && (currentAdmin.role === "superadmin" || currentAdmin.role === "main_curator"); }
-    function canEditAdmins() { return currentAdmin && currentAdmin.role === "superadmin"; }
-    function canEditHours() { return currentAdmin && (currentAdmin.role === "superadmin" || currentAdmin.role === "main_curator" || currentAdmin.role === "deputy_curator"); }
-
-    function renderMain() {
-        let best=-Infinity, bestN="—", rep=0, pos=0;
-        for(let i=0;i<factions.length;i++){ let s=stats[i]||{}; let t=calcTotal(s); if(t>best){best=t;bestN=factions[i].name;} rep+=(s.repr||0); pos+=calcPositive(s); }
-        document.getElementById("bestScore").innerText=best===-Infinity?0:best;
-        document.getElementById("bestFaction").innerHTML=bestN;
-        document.getElementById("totalReprimands").innerText=rep;
-        document.getElementById("positivePoints").innerText=pos;
-        document.getElementById("lastChange").innerHTML=lastChangeTimestamp>0?new Date(lastChangeTimestamp).toLocaleString():"—";
-        const isAdminMode = !!currentAdmin;
-        const canEdit = canEditPrice() || canEditGov();
-        
-        const priceGrid=document.getElementById("priceGrid"); priceGrid.innerHTML="";
-        for(let idx=0; idx<priceItems.length; idx++){
-            let p=priceItems[idx];
-            let div=document.createElement("div"); div.className="price-item";
-            if(canEditPrice()){
-                div.innerHTML=`
-                    <div class="price-info">
-                        <input type="text" value="${escapeHtml(p.name)}" style="flex:1; background:#0f121d; border:1px solid var(--line); border-radius:8px; padding:6px;" id="priceName_${idx}">
-                        <input type="number" value="${p.value}" style="width:80px; background:#0f121d; border:1px solid var(--line); border-radius:8px; padding:6px;" id="priceVal_${idx}">
-                    </div>
-                    <div class="price-actions">
-                        <button class="icon-btn save" data-idx="${idx}">💾 Сохранить</button>
-                        <button class="icon-btn delete" data-idx="${idx}">🗑️ Удалить</button>
-                    </div>
-                `;
-                div.querySelector(".save").onclick=()=>{
-                    p.name=document.getElementById(`priceName_${idx}`).value;
-                    p.value=Math.max(0,parseInt(document.getElementById(`priceVal_${idx}`).value)||0);
-                    saveAllToLocal(); addFullLog("Изменение прайса","система",`${p.name}: ${p.value}`);
-                    renderMain(); renderHours();
-                };
-                div.querySelector(".delete").onclick=()=>{
-                    if(confirm(`Удалить "${p.name}"?`)){
-                        priceItems.splice(idx,1);
-                        for(let i=0;i<factions.length;i++) delete stats[i][p.id];
-                        saveAllToLocal();
-                        renderMain(); renderHours();
-                    }
-                };
-            } else {
-                div.innerHTML=`<div class="price-info"><span class="price-name">${escapeHtml(p.name)}</span><span class="price-value">${p.value} баллов</span></div>`;
-            }
-            priceGrid.appendChild(div);
-        }
-        
-        const govGrid=document.getElementById("govGrid"); govGrid.innerHTML="";
-        for(let idx=0; idx<factions.length; idx++){
-            let f=factions[idx];
-            let card=document.createElement("div"); card.className="gov-card";
-            if(canEditGov()){
-                card.innerHTML=`
-                    <input type="text" value="${escapeHtml(f.name)}" class="gov-edit-input" id="govName_${idx}">
-                    <input type="text" value="${escapeHtml(f.leader)}" class="gov-edit-input" id="govLeader_${idx}">
-                    <div class="gov-actions">
-                        <button class="icon-btn save" data-idx="${idx}">💾 Сохранить</button>
-                        <button class="icon-btn delete" data-idx="${idx}">🗑️ Удалить</button>
-                    </div>
-                `;
-                card.querySelector(".save").onclick=()=>{
-                    f.name=document.getElementById(`govName_${idx}`).value;
-                    f.leader=document.getElementById(`govLeader_${idx}`).value;
-                    saveAllToLocal(); addFullLog("Изменение структуры",f.name,`Новый лидер: ${f.leader}`);
-                    renderMain(); renderHours();
-                };
-                card.querySelector(".delete").onclick=()=>{
-                    if(confirm(`Удалить "${f.name}"?`)){
-                        factions.splice(idx,1);
-                        let newStats={}, newHours={}, newReasons={};
-                        for(let i=0;i<factions.length;i++){ newStats[i]=stats[i]; newHours[i]=hoursData[i]; newReasons[i]=reasonsData[i]; }
-                        stats=newStats; hoursData=newHours; reasonsData=newReasons;
-                        saveAllToLocal();
-                        renderMain(); renderHours();
-                    }
-                };
-            } else {
-                card.innerHTML=`<div class="gov-name">${escapeHtml(f.name)}</div><div class="gov-leader">👤 ${escapeHtml(f.leader)}</div>`;
-            }
-            govGrid.appendChild(card);
-        }
-        
-        let theadRow=document.querySelector("#ratingTable thead tr");
-        theadRow.innerHTML='<th>Фракция / Лидер</th>';
-        for(let p of priceItems) theadRow.innerHTML+=`<th>${escapeHtml(p.name)}</th>`;
-        theadRow.innerHTML+='<th>ИТОГО</th>';
-        
-        let tbody=document.getElementById("ratingBody"); tbody.innerHTML="";
-        const canEditAll = currentAdmin && canEditPrice();
-        for(let i=0;i<factions.length;i++){
-            let canEdit = canEditAll || (currentUser?.type==="leader"&&currentUser.factionIndex===i);
-            let s=stats[i]||{}; let total=calcTotal(s);
-            let row=tbody.insertRow();
-            row.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong><br><span style="font-size:0.7rem;">👑 ${escapeHtml(factions[i].leader)}</span>`;
-            for(let p of priceItems){
-                let td=row.insertCell();
-                let inp=document.createElement("input"); inp.type="number"; inp.value=s[p.id]||0;
-                if(!canEdit) inp.disabled=true;
-                inp.onchange=((idx,pid)=>(e)=>{ if(canEdit){ let old=stats[idx][pid]||0; let nv=Math.max(0,parseInt(e.target.value)||0); stats[idx][pid]=nv; lastChangeTimestamp=Date.now(); addRatingLog(currentAdmin?.login||currentUser?.login||"admin",factions[idx].name,p.name,old,nv); addFullLog("Изменение рейтинга",factions[idx].name,`${p.name}: ${old}→${nv}`); renderMain(); }})(i,p.id);
-                td.appendChild(inp);
-            }
-            let tdTotal=row.insertCell(); tdTotal.className="total-cell"; tdTotal.innerText=total;
-        }
-        document.getElementById("addPriceBtn").style.display=canEditPrice()?"inline-block":"none";
-        document.getElementById("addGovBtn").style.display=canEditGov()?"inline-block":"none";
-    }
-
-    function renderHours() {
-        const isAdminMode = !!currentAdmin;
-        const canEditHoursGlobal = canEditHours();
-        const isLeaderMode = !!currentUser;
-        const myIdx = isLeaderMode ? currentUser.factionIndex : -1;
-        const weekDates=getWeekDates(currentWeekStart);
-        const dayNames=["ПН","ВТ","СР","ЧТ","ПТ","СБ","ВС"];
-        for(let i=0;i<7;i++){ let el=document.getElementById(`day${i}`); if(el) el.innerHTML=`${dayNames[i]}<br><span style="font-size:0.65rem;">${weekDates[i].slice(5)}</span>`; }
-        document.getElementById("currentWeekRange").innerText=formatDateRange(currentWeekStart);
-        const hb=document.getElementById("hoursBody"); hb.innerHTML="";
-        const rb=document.getElementById("reasonsBody"); rb.innerHTML="";
-        for(let i=0;i<factions.length;i++){
-            const canEdit = canEditHoursGlobal || (isLeaderMode && myIdx === i);
-            const uh=hoursData[i]||{};
-            let total=0;
-            let row=hb.insertRow();
-            row.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong><br><span style="font-size:0.7rem;">👑 ${escapeHtml(factions[i].leader)}</span>`;
-            for(let d=0;d<7;d++){
-                let td=row.insertCell();
-                let date=weekDates[d];
-                let val=uh[date]||0;
-                total+=val;
-                let inp=document.createElement("input"); inp.type="number"; inp.value=val; inp.step="0.5"; inp.style.width="60px";
-                if(!canEdit) inp.disabled=true;
-                inp.onchange=((idx,dt)=>(e)=>{ if(canEdit){ hoursData[idx][dt]=Math.max(0,parseFloat(e.target.value)||0); saveAllToLocal(); renderHours(); }})(i,date);
-                td.appendChild(inp);
-            }
-            row.insertCell(1).innerHTML=`<span class="${total>=hourNorm?'hours-cell':'warning-cell'}">${total.toFixed(1)} ч.</span>`;
-            row.insertCell(2).innerHTML=`<span style="color:${total>=hourNorm?'var(--green)':'var(--orange)'}">${total>=hourNorm?"✅ Выполнена":"❌ Не выполнена"}</span>`;
-            
-            let reason=reasonsData[i]||{};
-            let rrow=rb.insertRow();
-            rrow.insertCell(0).innerHTML=`<strong>${escapeHtml(factions[i].name)}</strong>`;
-            let rt=rrow.insertCell(1);
-            if(canEdit){
-                let ta=document.createElement("textarea"); ta.rows=2; ta.placeholder="Укажите причину..."; ta.value=reason.text||"";
-                ta.onchange=((idx)=>(e)=>{ reasonsData[idx].text=e.target.value; saveAllToLocal(); renderHours(); })(i);
-                rt.appendChild(ta);
-            } else { rt.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.text)||"—"}</div>`; }
-            
-            let st=rrow.insertCell(2);
-            if(canEditHoursGlobal){
-                let sel=document.createElement("select");
-                sel.innerHTML=`<option value="pending" ${reason.status==="pending"?"selected":""}>⏳ Ожидает</option><option value="approved" ${reason.status==="approved"?"selected":""}>✅ Одобрено</option><option value="rejected" ${reason.status==="rejected"?"selected":""}>❌ Отклонено</option>`;
-                sel.onchange=((idx)=>(e)=>{ reasonsData[idx].status=e.target.value; saveAllToLocal(); renderHours(); })(i);
-                st.appendChild(sel);
-            } else {
-                let cls=reason.status==="pending"?"status-pending":(reason.status==="approved"?"status-approved":"status-rejected");
-                let txt=reason.status==="pending"?"⏳ Ожидает":(reason.status==="approved"?"✅ Одобрено":"❌ Отклонено");
-                st.innerHTML=`<span class="status-badge ${cls}">${txt}</span>`;
-            }
-            
-            let ct=rrow.insertCell(3);
-            if(canEditHoursGlobal){
-                let inp=document.createElement("input"); inp.type="text"; inp.placeholder="Комментарий..."; inp.value=reason.adminComment||""; inp.style.width="100%";
-                inp.onchange=((idx)=>(e)=>{ reasonsData[idx].adminComment=e.target.value; saveAllToLocal(); renderHours(); })(i);
-                ct.appendChild(inp);
-            } else { ct.innerHTML=`<div style="color:var(--muted);">${escapeHtml(reason.adminComment)||"—"}</div>`; }
-        }
-        let normInp=document.getElementById("hourNorm");
-        normInp.value=hourNorm; normInp.disabled=!canEditHoursGlobal;
-        document.getElementById("editNormBtn").style.display=canEditHoursGlobal?"inline-block":"none";
-        normInp.onchange=(e)=>{ if(canEditHoursGlobal){ hourNorm=Math.max(0,parseFloat(e.target.value)||0); saveAllToLocal(); renderHours(); } };
-    }
-
-    function renderAdmin() {
-        // Таблица администраторов
-        let adminsBody=document.getElementById("adminsBody"); adminsBody.innerHTML="";
-        for(let [login, data] of Object.entries(admins)){
-            let r=adminsBody.insertRow();
-            r.insertCell(0).innerHTML=login;
-            let roleName = ADMIN_ROLES[data.role]?.name || data.role;
-            let roleClass = ADMIN_ROLES[data.role]?.color || "";
-            r.insertCell(1).innerHTML=`<span class="role-badge ${roleClass}">${roleName}</span>`;
-            let actions=r.insertCell(2);
-            if(canEditAdmins() && login !== "admin"){
-                let delBtn=document.createElement("button"); delBtn.textContent="🗑️ Удалить"; delBtn.className="btn"; delBtn.style.background="rgba(220,70,70,0.3)"; delBtn.onclick=()=>{ if(confirm(`Удалить администратора ${login}?`)){ delete admins[login]; saveAllToLocal(); renderAdmin(); } };
-                actions.appendChild(delBtn);
-            } else if(login === "admin") {
-                actions.innerHTML="<span style='color:var(--muted);'>Супер-админ</span>";
-            }
-        }
-        
-        // Таблица лидеров
-        let ab=document.getElementById("accountsBody"); ab.innerHTML="";
-        for(let [login,data] of Object.entries(users)){
-            let r=ab.insertRow();
-            r.insertCell(0).innerHTML=login;
-            r.insertCell(1).innerHTML=data.email;
-            r.insertCell(2).innerHTML=factions[data.factionIndex]?.name||"—";
-            r.insertCell(3).innerHTML=userRegDate[login]||"—";
-            let delBtn=document.createElement("button"); delBtn.textContent="🗑️ Удалить"; delBtn.className="btn"; delBtn.style.background="rgba(220,70,70,0.3)"; delBtn.onclick=()=>{ if(confirm(`Удалить ${login}?`)){ delete users[login]; delete userRegDate[login]; saveAllToLocal(); renderAdmin(); } };
-            r.insertCell(4).appendChild(delBtn);
-        }
-        
-        // Логи изменений
-        let rlb=document.getElementById("ratingLogsBody"); rlb.innerHTML="";
-        ratingChangeLogs.slice(0,200).forEach(l=>{ let r=rlb.insertRow(); r.insertCell(0).innerHTML=l.time; r.insertCell(1).innerHTML=`<span style="color:var(--accent);">${l.user}</span>`; r.insertCell(2).innerHTML=l.faction; r.insertCell(3).innerHTML=l.field; r.insertCell(4).innerHTML=l.oldVal; r.insertCell(5).innerHTML=l.newVal; });
-        
-        let flb=document.getElementById("fullLogsBody"); flb.innerHTML="";
-        fullAuditLogs.slice(0,200).forEach(l=>{ let r=flb.insertRow(); r.insertCell(0).innerHTML=l.time; r.insertCell(1).innerHTML=`<span style="color:var(--accent);">${l.user}</span>`; r.insertCell(2).innerHTML=l.faction; r.insertCell(3).innerHTML=l.action; r.insertCell(4).innerHTML=l.details; });
-        
-        document.getElementById("addAdminBtn").style.display=canEditAdmins()?"inline-block":"none";
-    }
-
-    function updateUI() {
-        const isAdminMode = !!currentAdmin;
-        const isLeaderMode = !!currentUser;
-        
-        document.getElementById("authButtons").style.display=(isAdminMode || isLeaderMode)?"none":"flex";
-        document.getElementById("userInfoArea").style.display=(isAdminMode || isLeaderMode)?"flex":"none";
-        document.getElementById("logoutBtn").style.display=(isAdminMode || isLeaderMode)?"block":"none";
-        document.getElementById("adminTabBtn").style.display=isAdminMode?"inline-block":"none";
-        document.getElementById("adminFooter").style.display=isAdminMode?"block":"none";
-        
-        if(currentAdmin){
-            let roleName = ADMIN_ROLES[currentAdmin.role]?.name || "Администратор";
-            document.getElementById("userInfoArea").innerHTML=`👑 ${roleName}: ${currentAdmin.login}`;
-        } else if(currentUser){
-            document.getElementById("userInfoArea").innerHTML=`👤 Лидер: ${factions[currentUser.factionIndex]?.name} (${currentUser.login})`;
-        }
-        renderMain(); renderHours(); if(currentAdmin) renderAdmin();
-    }
-
-    function escapeHtml(s){ return String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
-
-    async function register(login,email,pass,factionIdx){
-        if(!login||!email||!pass) return "Заполните всё";
-        if(!/^[a-zA-Z0-9_]{3,20}$/.test(login)) return "Логин: 3-20 букв, цифр, _";
-        if(!/^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/.test(email)) return "Неверная почта";
-        if(users[login]) return "Логин занят";
-        if(factionIdx===undefined||factionIdx<0||factionIdx>=factions.length) return "Выберите фракцию";
-        let hash=await hashPassword(pass);
-        users[login]={passwordHash:hash,email,factionIndex:factionIdx,login};
-        userRegDate[login]=new Date().toLocaleString();
-        addFullLog("Регистрация",factions[factionIdx].name,`Новый лидер: ${login}`);
-        saveAllToLocal();
-        return null;
-    }
-    async function login(login,pass){
-        let u=users[login];
-        if(!u) return "Неверный логин";
-        let hash=await hashPassword(pass);
-        if(u.passwordHash!==hash) return "Неверный пароль";
-        currentUser={type:"leader",login:login,factionIndex:u.factionIndex};
-        addFullLog("Вход",factions[u.factionIndex].name,`Лидер ${login} вошёл`);
-        saveAllToLocal();
-        updateUI();
-        return null;
-    }
-    async function adminLogin(login,pass){
-        let admin = admins[login];
-        if(!admin) return "Неверный логин";
-        let hash=await hashPassword(pass);
-        if(admin.passwordHash !== hash) return "Неверный пароль";
-        currentAdmin={login:login, role:admin.role};
-        addFullLog("Вход администратора","система",`${login} (${ADMIN_ROLES[admin.role]?.name}) вошёл`);
-        saveAllToLocal();
-        updateUI();
-        return null;
-    }
-    async function addAdmin(login, password, role){
-        if(!canEditAdmins()) return "Недостаточно прав";
-        if(admins[login]) return "Администратор уже существует";
-        let hash=await hashPassword(password);
-        admins[login]={passwordHash:hash, role:role};
-        addFullLog("Добавление администратора","система",`${login} с ролью ${ADMIN_ROLES[role]?.name}`);
-        saveAllToLocal();
-        renderAdmin();
-        return null;
-    }
-    async function changeAdminPassword(login, newPassword){
-        if(!canEditAdmins() && currentAdmin?.login !== login) return "Недостаточно прав";
-        if(!admins[login]) return "Администратор не найден";
-        let hash=await hashPassword(newPassword);
-        admins[login].passwordHash=hash;
-        addFullLog("Смена пароля","система",`Администратор ${login} сменил пароль`);
-        saveAllToLocal();
-        return null;
-    }
-    function logout(){
-        if(currentAdmin) addFullLog("Выход","система",`${currentAdmin.login} вышел`);
-        if(currentUser) addFullLog("Выход","система",`${currentUser.login} вышел`);
-        currentAdmin=null; currentUser=null;
-        saveAllToLocal();
-        updateUI();
-    }
-
-    function initModals(){
-        document.getElementById("showRegisterBtn").onclick=()=>{
-            let s=document.getElementById("regFaction");
-            s.innerHTML='<option value="">Выберите фракцию</option>'+factions.map((f,i)=>`<option value="${i}">${f.name}</option>`).join('');
-            document.getElementById("registerModal").classList.add("active");
-        };
-        document.getElementById("showLoginBtn").onclick=()=>document.getElementById("loginModal").classList.add("active");
-        document.getElementById("showAdminLoginBtn").onclick=()=>document.getElementById("adminLoginModal").classList.add("active");
-        document.getElementById("doRegister").onclick=async()=>{
-            let err=await register(document.getElementById("regLogin").value.trim(),document.getElementById("regEmail").value.trim(),document.getElementById("regPass").value,parseInt(document.getElementById("regFaction").value));
-            if(err) alert(err); else { alert("Регистрация успешна!"); document.getElementById("registerModal").classList.remove("active"); }
-        };
-        document.getElementById("doLogin").onclick=async()=>{
-            let err=await login(document.getElementById("loginUser").value.trim(),document.getElementById("loginPassword").value);
-            if(err) alert(err); else document.getElementById("loginModal").classList.remove("active");
-        };
-        document.getElementById("doAdminLogin").onclick=async()=>{
-            let err=await adminLogin(document.getElementById("adminLoginUser").value.trim(),document.getElementById("adminLoginPass").value);
-            if(err) alert(err); else document.getElementById("adminLoginModal").classList.remove("active");
-        };
-        document.getElementById("logoutBtn").onclick=()=>logout();
-        document.getElementById("addAdminBtn").onclick=()=>document.getElementById("addAdminModal").classList.add("active");
-        document.getElementById("confirmAddAdmin").onclick=async()=>{
-            let err=await addAdmin(document.getElementById("newAdminLogin").value.trim(),document.getElementById("newAdminPasswordInput").value,document.getElementById("newAdminRole").value);
-            if(err) alert(err); else { alert("Администратор добавлен!"); document.getElementById("addAdminModal").classList.remove("active"); }
-        };
-        document.getElementById("changePasswordBtn").onclick=async()=>{
-            let newPass=document.getElementById("newAdminPassword").value;
-            if(!newPass){ alert("Введите новый пароль"); return; }
-            let err=await changeAdminPassword(currentAdmin?.login, newPass);
-            if(err) alert(err); else { alert("Пароль изменён!"); document.getElementById("newAdminPassword").value=""; }
-        };
-        
-        document.querySelectorAll(".closeModal").forEach(b=>b.onclick=()=>b.closest(".modal")?.classList.remove("active"));
-        window.onclick=(e)=>{ if(e.target.classList&&e.target.classList.contains("modal")) e.target.classList.remove("active"); };
-        document.querySelectorAll(".tab-btn").forEach(btn=>{
-            btn.onclick=()=>{
-                document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-                btn.classList.add("active");
-                document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-                document.getElementById(btn.dataset.page+"Page").classList.add("active");
-                if(btn.dataset.page==="admin"&&currentAdmin) renderAdmin();
-            };
-        });
-        document.getElementById("prevWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()-7); renderHours(); };
-        document.getElementById("nextWeekBtn").onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()+7); renderHours(); };
-        document.getElementById("editNormBtn").onclick=()=>alert("Измените норму в поле выше");
-        document.getElementById("clearRatingLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить историю изменений?")){ ratingChangeLogs=[]; saveAllToLocal(); renderAdmin(); } });
-        document.getElementById("clearAccountsBtn")?.addEventListener("click",()=>{ if(confirm("Удалить всех пользователей?")){ users={}; userRegDate={}; saveAllToLocal(); renderAdmin(); } });
-        document.getElementById("clearFullLogsBtn")?.addEventListener("click",()=>{ if(confirm("Очистить логи?")){ fullAuditLogs=[]; saveAllToLocal(); renderAdmin(); } });
-        document.getElementById("addPriceBtn").onclick=()=>{ document.getElementById("addPriceModal").classList.add("active"); };
-        document.getElementById("confirmAddPrice").onclick=()=>{
-            let name=document.getElementById("newPriceName").value.trim();
-            let val=parseInt(document.getElementById("newPriceValue").value)||0;
-            if(!name){ alert("Введите название"); return; }
-            let newId="custom_"+Date.now();
-            priceItems.push({ id:newId, name:name, value:Math.max(0,val) });
-            for(let i=0;i<factions.length;i++) if(!stats[i][newId]) stats[i][newId]=0;
-            addFullLog("Добавление пункта прайса","система",`${name}: ${val}`);
-            saveAllToLocal();
-            document.getElementById("addPriceModal").classList.remove("active");
-            document.getElementById("newPriceName").value="";
-            document.getElementById("newPriceValue").value="";
-            renderMain(); renderHours();
-        };
-        document.getElementById("addGovBtn").onclick=()=>{ document.getElementById("addGovModal").classList.add("active"); };
-        document.getElementById("confirmAddGov").onclick=()=>{
-            let name=document.getElementById("newGovName").value.trim();
-            let leader=document.getElementById("newGovLeader").value.trim() || "—";
-            if(!name){ alert("Введите название"); return; }
-            factions.push({ id:"gov_"+Date.now(), name:name, leader:leader });
-            let newIdx=factions.length-1;
-            stats[newIdx]={};
-            for(let p of priceItems) stats[newIdx][p.id]=0;
-            hoursData[newIdx]={};
-            reasonsData[newIdx]={ text:"", status:"pending", adminComment:"" };
-            addFullLog("Добавление структуры","система",`${name} (лидер: ${leader})`);
-            saveAllToLocal();
-            document.getElementById("addGovModal").classList.remove("active");
-            document.getElementById("newGovName").value="";
-            document.getElementById("newGovLeader").value="";
-            renderMain(); renderHours();
-        };
-    }
-
-    loadAllFromLocal();
-    initModals();
-    updateUI();
+}
 </script>
+
 </body>
 </html>
